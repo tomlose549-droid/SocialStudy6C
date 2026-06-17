@@ -43,25 +43,36 @@ body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
   content:'';position:absolute;width:200%;height:200%;
   background:radial-gradient(ellipse at 30% 50%,rgba(255,255,255,0.15) 0%,transparent 50%),
              radial-gradient(ellipse at 70% 20%,rgba(255,255,255,0.1) 0%,transparent 50%);
-  animation:floatBg 20s ease-in-out infinite
+  animation:floatBg 20s ease-in-out infinite;z-index:1;pointer-events:none
+}
+#homepage::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,#5BC0BE 0%,#3BA7D8 50%,#1E88E5 100%);
+  animation:homeBlueCycle 14s ease-in-out infinite;
+  opacity:0;z-index:0;pointer-events:none
 }
 @keyframes floatBg{
   0%,100%{transform:translate(0,0) rotate(0deg)}
   33%{transform:translate(-2%,-1%) rotate(1deg)}
   66%{transform:translate(2%,1%) rotate(-1deg)}
 }
-.home-bg-shapes{position:absolute;width:100%;height:100%;overflow:hidden;pointer-events:none}
+@keyframes homeBlueCycle{
+  0%,100%{opacity:0}
+  50%{opacity:1}
+}
+.home-bg-shapes{position:absolute;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:1}
 .home-bg-shapes span{
   position:absolute;display:block;border-radius:50%;
-  background:rgba(255,255,255,0.08);animation:floatShape 15s infinite
+  background:rgba(255,255,255,0.08);animation:breathShape 16s ease-in-out infinite;
+  transform-origin:center
 }
 .home-bg-shapes span:nth-child(1){width:300px;height:300px;top:-5%;left:-5%;animation-delay:0s}
-.home-bg-shapes span:nth-child(2){width:200px;height:200px;bottom:10%;right:-3%;animation-delay:-3s}
-.home-bg-shapes span:nth-child(3){width:150px;height:150px;top:40%;left:60%;animation-delay:-7s}
-.home-bg-shapes span:nth-child(4){width:250px;height:250px;top:60%;left:-2%;animation-delay:-5s}
-@keyframes floatShape{
-  0%,100%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(20px,-20px) scale(1.1)}
+.home-bg-shapes span:nth-child(2){width:200px;height:200px;bottom:10%;right:-3%;animation-delay:-4s}
+.home-bg-shapes span:nth-child(3){width:150px;height:150px;top:40%;left:60%;animation-delay:-8s}
+.home-bg-shapes span:nth-child(4){width:250px;height:250px;top:60%;left:-2%;animation-delay:-12s}
+@keyframes breathShape{
+  0%,100%{transform:scale(1.12)}
+  50%{transform:scale(0.72)}
 }
 .home-content{position:relative;z-index:2;text-align:center;padding:20px}
 .home-icon{font-size:72px;margin-bottom:16px;animation:bounce 2s infinite}
@@ -104,6 +115,23 @@ body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
 .home-card.geo .card-badge{background:linear-gradient(90deg,#4CAF50,#81C784)}
 .home-card.hist .card-badge{background:linear-gradient(90deg,#FF7043,#FFAB91)}
 .home-footer{position:absolute;bottom:20px;color:rgba(255,255,255,0.6);font-size:13px;letter-spacing:1px}
+
+.language-switch{
+  position:fixed;top:18px;right:24px;z-index:500;
+  display:flex;flex-direction:column;align-items:center;gap:4px
+}
+.language-switch button{
+  border:none;border-radius:16px;padding:10px 18px;
+  background:rgba(255,255,255,0.94);color:var(--dark);
+  font-size:15px;font-weight:800;box-shadow:0 8px 28px rgba(0,0,0,0.12);
+  cursor:pointer;transition:all 0.25s
+}
+.language-switch button:hover{transform:translateY(-2px);background:white}
+.language-switch .lang-note{
+  color:var(--dark);font-size:12px;font-weight:600;
+  background:rgba(255,255,255,0.76);border-radius:12px;padding:3px 9px;
+  box-shadow:0 4px 14px rgba(0,0,0,0.08);white-space:nowrap
+}
 
 /* ========== HEADER BAR (shared) ========== */
 .top-bar{
@@ -345,6 +373,11 @@ body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
 </head>
 <body>
 
+<div class="language-switch">
+  <button id="langToggle" onclick="toggleLanguage()">English</button>
+  <div class="lang-note" id="langNote">点击显示中文</div>
+</div>
+
 <!-- ============ HOMEPAGE ============ -->
 <div id="homepage" class="page active">
   <div class="home-bg-shapes">
@@ -445,6 +478,61 @@ function navigateTo(page){
   }
 }
 
+let currentLang = 'en';
+let activeGeoIdx = null;
+let activeHistoryDetail = null;
+
+function isChinese(){
+  return currentLang === 'zh';
+}
+
+function choose(en, zh){
+  return isChinese() ? zh : en;
+}
+
+function toggleLanguage(){
+  currentLang = isChinese() ? 'en' : 'zh';
+  applyLanguage();
+}
+
+function applyLanguage(){
+  document.documentElement.lang = isChinese() ? 'zh-CN' : 'en';
+  document.title = choose('Social Study - Social Studies Learning Platform', '社会学习 - 社会学科学习平台');
+  document.getElementById('langToggle').textContent = choose('English', '中文');
+  document.getElementById('langNote').textContent = choose('点击显示中文', 'Press to English');
+
+  document.querySelector('.home-title').textContent = choose('Social Study', '社会学习');
+  document.querySelector('.home-subtitle').textContent = choose('Explore the World · Travel Through History · Inspire the Future', '探索世界 · 穿越历史 · 启迪未来');
+  document.querySelector('.home-card.geo h2').textContent = choose('Geography', '地理');
+  document.querySelector('.home-card.geo p').innerHTML = choose('Explore every corner of the Earth<br>Physical & Human Geography', '探索地球的每个角落<br>自然地理与人文地理');
+  document.querySelector('.home-card.geo .card-badge').textContent = choose('3D Interactive Globe', '3D互动地球');
+  document.querySelector('.home-card.hist h2').textContent = choose('History', '历史');
+  document.querySelector('.home-card.hist p').innerHTML = choose('Travel through the river of time<br>Witness the evolution of civilization', '穿越时间长河<br>见证文明演进');
+  document.querySelector('.home-card.hist .card-badge').textContent = choose('Complete Timeline', '完整时间线');
+  document.querySelector('.home-footer').textContent = choose('No.2 Affiliated Middle School of ECNU · International Division · Grade 6-9 Social Studies', '华东师范大学第二附属中学 · 国际部 · 6-9年级社会学科');
+
+  document.querySelector('#geography-page .bar-title').textContent = choose('Geography · 3D Interactive Globe', '地理 · 3D互动地球');
+  document.querySelector('#geography-page .bar-badge').textContent = choose('3D Interactive Globe', '3D互动地球');
+  document.querySelector('#history-page .bar-title').textContent = choose('History · Timeline of Civilization', '历史 · 文明时间线');
+  document.querySelector('#history-page .bar-badge').textContent = choose('From Ancient to Modern', '从古代到现代');
+  document.querySelector('.geo-hint').textContent = choose('🌐 Drag to rotate · Click locations to explore', '🌐 拖动旋转 · 点击地点探索');
+  const geoLoader = document.getElementById('geoLoader');
+  if(geoLoader) geoLoader.innerHTML = `<span class="loader-spin"></span>${choose('Loading Earth...', '正在加载地球...')}`;
+  document.querySelector('.panel-close').textContent = choose('Close ↑', '关闭 ↑');
+  document.querySelector('.detail-vocab-title').textContent = choose('📖 Key Vocabulary', '📖 关键词汇');
+  document.querySelector('.detail-close').textContent = '✕';
+
+  if(activeGeoIdx !== null && document.getElementById('geo-info-panel').classList.contains('open')){
+    showGeoInfo(activeGeoIdx);
+  }
+  if(document.getElementById('historyContainer').dataset.rendered){
+    renderHistory(true);
+  }
+  if(activeHistoryDetail && document.getElementById('history-detail').classList.contains('open')){
+    showHistoryDetail(activeHistoryDetail.ei, activeHistoryDetail.vi);
+  }
+}
+
 // ============================================================
 // GEOGRAPHY DATA
 // ============================================================
@@ -522,6 +610,73 @@ const geoLocations = [
     detail:'📚 Learning Content: In Grade 7 Ecological Geography, you will study tropical grassland climate and ecosystems, food chains and biodiversity, the geographical causes of animal migration, and wildlife conservation and ecotourism.'
   }
 ];
+
+const geoZh = {
+  'Amazon Rainforest': {
+    name:'亚马孙雨林', grade:'7年级 · 生物地理',
+    desc:'亚马孙雨林是世界上最大的热带雨林，常被称为“地球之肺”。它横跨巴西、秘鲁、哥伦比亚等9个国家，面积约700万平方千米。',
+    detail:'📚 学习内容：在7年级生物地理中，你将学习热带雨林生态系统、生物多样性、气候变化对雨林的影响以及可持续发展。亚马孙拥有地球上超过10%的已知物种，是世界上生物多样性最丰富的地区之一。'
+  },
+  'Nile River': {
+    name:'尼罗河', grade:'6年级 · 世界地理',
+    desc:'尼罗河是世界上最长的河流，全长约6650千米。它流经非洲东北部11个国家，最终注入地中海。',
+    detail:'📚 学习内容：在6年级世界地理中，你将学习尼罗河对古埃及文明的重要性、河流地貌的形成，以及河流对农业和经济的影响。尼罗河每年的泛滥带来肥沃淤泥，使农业生产成为可能。'
+  },
+  'Himalayas': {
+    name:'喜马拉雅山脉', grade:'7年级 · 自然地理',
+    desc:'喜马拉雅山脉是世界上海拔最高的山脉，拥有100多座超过7000米的高峰，其中包括世界最高峰珠穆朗玛峰（8848.86米）。',
+    detail:'📚 学习内容：在7年级自然地理中，你将学习板块构造——印度板块与欧亚板块碰撞形成喜马拉雅山脉——以及垂直气候带和独特的高山生态系统。'
+  },
+  'Great Barrier Reef': {
+    name:'大堡礁', grade:'7年级 · 海洋地理',
+    desc:'大堡礁是世界上最大的珊瑚礁系统，沿澳大利亚海岸延伸超过2300千米。它是地球上最大的生命结构，从太空也能看到。',
+    detail:'📚 学习内容：在7年级海洋地理中，你将学习珊瑚礁生态系统、海洋生物多样性、全球变暖导致的珊瑚白化，以及海洋保护的重要性。大堡礁拥有1500多种鱼类和400多种珊瑚。'
+  },
+  'Sahara Desert': {
+    name:'撒哈拉沙漠', grade:'7年级 · 气候地理',
+    desc:'撒哈拉沙漠是世界上最大的热带沙漠，覆盖北非约940万平方千米，是地球上最干旱的地区之一。',
+    detail:'📚 学习内容：在7年级气候地理中，你将学习沙漠气候的形成、沙漠中的适应与生存、荒漠化的成因与防治，以及撒哈拉对全球气候系统的影响。'
+  },
+  'Andes Mountains': {
+    name:'安第斯山脉', grade:'7年级 · 自然地理',
+    desc:'安第斯山脉是世界上最长的大陆山脉，沿南美洲西海岸延伸约8900千米，穿越7个国家。',
+    detail:'📚 学习内容：在7年级自然地理中，你将学习安第斯山脉如何由板块构造形成、垂直气候带、印加文明如何适应山区环境，以及该地区的矿产资源。'
+  },
+  'Yangtze River': {
+    name:'长江', grade:'6年级 · 中国地理',
+    desc:'长江是中国最长、亚洲最长的河流，全长约6300千米。它发源于青藏高原，流经11个省级行政区后注入东海。',
+    detail:'📚 学习内容：在6年级中国地理中，你将学习长江流域的地理特征、长江经济带的发展、三峡工程的意义，以及长江对中国文化的影响。'
+  },
+  'The Alps': {
+    name:'阿尔卑斯山脉', grade:'7年级 · 欧洲地理',
+    desc:'阿尔卑斯山脉是欧洲最高且分布最广的山脉，横跨法国、瑞士、意大利、德国等8个国家，是重要的自然边界和旅游目的地。',
+    detail:'📚 学习内容：在7年级欧洲地理中，你将学习阿尔卑斯冰川地貌的形成、旅游业对山区经济的影响、欧洲主要河流的源头以及高山生态系统。'
+  },
+  'Pacific Ocean': {
+    name:'太平洋', grade:'6年级 · 世界地理',
+    desc:'太平洋是地球上最大的海洋，面积约1.65亿平方千米，比地球所有陆地面积总和还大，覆盖地球表面约三分之一。',
+    detail:'📚 学习内容：在6年级世界地理中，你将学习太平洋的位置与范围、环太平洋火山地震带、洋流系统如何影响全球气候，以及太平洋岛屿的文化多样性。'
+  },
+  'Gobi Desert': {
+    name:'戈壁沙漠', grade:'7年级 · 亚洲地理',
+    desc:'戈壁沙漠是亚洲最大的沙漠，分布在中国北部和蒙古南部。它不仅有沙丘，也有广阔的砾石平原和干旱草原。',
+    detail:'📚 学习内容：在7年级亚洲地理中，你将学习戈壁的气候特征、沙漠地区的绿洲经济、丝绸之路与戈壁的关系，以及荒漠化治理面临的挑战。'
+  },
+  'Mediterranean Sea': {
+    name:'地中海', grade:'6年级 · 世界地理',
+    desc:'地中海是世界上最大的陆间海，位于欧洲、亚洲和非洲之间。自古以来，它就是贸易与文化交流的重要通道，被称为“文明的熔炉”。',
+    detail:'📚 学习内容：在6年级世界地理中，你将学习地中海气候（夏季炎热干燥、冬季温和多雨）、沿岸古代文明，以及地中海在历史贸易中的重要作用。'
+  },
+  'African Savanna': {
+    name:'非洲稀树草原', grade:'7年级 · 生态地理',
+    desc:'非洲稀树草原（塞伦盖蒂-马拉生态系统）是世界上最著名的热带草原生态系统，以壮观的年度动物大迁徙闻名。',
+    detail:'📚 学习内容：在7年级生态地理中，你将学习热带草原气候与生态系统、食物链和生物多样性、动物迁徙的地理原因，以及野生动物保护和生态旅游。'
+  }
+};
+
+function geoText(loc, field){
+  return choose(loc[field], geoZh[loc.name]?.[field] || loc[field]);
+}
 
 // ============================================================
 // 3D GLOBE IMPLEMENTATION
@@ -736,27 +891,121 @@ async function initGlobe(){
 
   // Stars
   const starsGeo = new THREE.BufferGeometry();
-  const starCount = 4000;
+  const starCount = 7000;
   const starPos = new Float32Array(starCount * 3);
   const starColors = new Float32Array(starCount * 3);
   for(let i=0; i<starCount; i++){
     const theta2 = Math.random() * Math.PI * 2;
     const phi2 = Math.acos(2 * Math.random() - 1);
-    const r2 = 50 + Math.random() * 150;
+    const r2 = 28 + Math.random() * 120;
     starPos[i*3] = r2 * Math.sin(phi2) * Math.cos(theta2);
     starPos[i*3+1] = r2 * Math.cos(phi2);
     starPos[i*3+2] = r2 * Math.sin(phi2) * Math.sin(theta2);
-    const c = 0.6 + Math.random() * 0.4;
-    starColors[i*3] = c; starColors[i*3+1] = c; starColors[i*3+2] = c + Math.random() * 0.1;
+    const c = 0.72 + Math.random() * 0.28;
+    starColors[i*3] = c;
+    starColors[i*3+1] = Math.min(1, c + Math.random() * 0.08);
+    starColors[i*3+2] = Math.min(1, c + 0.12 + Math.random() * 0.1);
   }
   starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
   starsGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+  function makeRoundStarTexture(){
+    const c = document.createElement('canvas');
+    c.width = 96; c.height = 96;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(48, 48, 0, 48, 48, 48);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.28, 'rgba(230,248,255,0.95)');
+    g.addColorStop(0.62, 'rgba(120,200,255,0.22)');
+    g.addColorStop(1, 'rgba(120,200,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 96, 96);
+    return new THREE.CanvasTexture(c);
+  }
+  const roundStarTexture = makeRoundStarTexture();
   const starMat = new THREE.PointsMaterial({
-    size: 0.15, vertexColors: true, transparent: true, opacity: 0.8,
-    sizeAttenuation: true
+    map: roundStarTexture, size: 0.28, vertexColors: true, transparent: true, opacity: 1,
+    sizeAttenuation: true, alphaTest: 0.02, depthWrite: false
   });
   const stars = new THREE.Points(starsGeo, starMat);
   scene.add(stars);
+
+  const brightStarsGeo = new THREE.BufferGeometry();
+  const brightStarCount = 650;
+  const brightStarPos = new Float32Array(brightStarCount * 3);
+  for(let i=0; i<brightStarCount; i++){
+    const theta2 = Math.random() * Math.PI * 2;
+    const phi2 = Math.acos(2 * Math.random() - 1);
+    const r2 = 18 + Math.random() * 60;
+    brightStarPos[i*3] = r2 * Math.sin(phi2) * Math.cos(theta2);
+    brightStarPos[i*3+1] = r2 * Math.cos(phi2);
+    brightStarPos[i*3+2] = r2 * Math.sin(phi2) * Math.sin(theta2);
+  }
+  brightStarsGeo.setAttribute('position', new THREE.BufferAttribute(brightStarPos, 3));
+  const brightStarMat = new THREE.PointsMaterial({
+    map: roundStarTexture, color: 0xeaf7ff, size: 0.52, transparent: true, opacity: 0.92,
+    sizeAttenuation: true, blending: THREE.AdditiveBlending, depthWrite: false, alphaTest: 0.02
+  });
+  const brightStars = new THREE.Points(brightStarsGeo, brightStarMat);
+  scene.add(brightStars);
+
+  // Moon
+  const moonOrbit = new THREE.Group();
+  moonOrbit.rotation.z = 0.22;
+  moonOrbit.rotation.x = -0.18;
+  scene.add(moonOrbit);
+  function makeMoonTexture(){
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    const ctx = c.getContext('2d');
+    const base = ctx.createLinearGradient(0, 0, 512, 256);
+    base.addColorStop(0, '#8f8a82');
+    base.addColorStop(0.45, '#d6d0c4');
+    base.addColorStop(1, '#77736d');
+    ctx.fillStyle = base;
+    ctx.fillRect(0, 0, 512, 256);
+    for(let i=0; i<1800; i++){
+      const v = 125 + Math.random() * 80;
+      ctx.fillStyle = `rgba(${v},${v},${v},${0.03 + Math.random() * 0.05})`;
+      ctx.fillRect(Math.random() * 512, Math.random() * 256, 1 + Math.random() * 2, 1 + Math.random() * 2);
+    }
+    for(let i=0; i<46; i++){
+      const x = Math.random() * 512;
+      const y = Math.random() * 256;
+      const r = 5 + Math.random() * 20;
+      const crater = ctx.createRadialGradient(x - r * 0.25, y - r * 0.25, 1, x, y, r);
+      crater.addColorStop(0, 'rgba(245,240,225,0.25)');
+      crater.addColorStop(0.52, 'rgba(80,76,72,0.28)');
+      crater.addColorStop(0.72, 'rgba(235,230,218,0.18)');
+      crater.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = crater;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    return new THREE.CanvasTexture(c);
+  }
+  const moonGeo = new THREE.SphereGeometry(0.16, 48, 48);
+  const moonTexture = makeMoonTexture();
+  const moonMat = new THREE.MeshPhongMaterial({
+    map: moonTexture,
+    color: 0xd8d2c5,
+    emissive: new THREE.Color(0x1c1c24),
+    emissiveIntensity: 0.08,
+    shininess: 2,
+    bumpMap: moonTexture,
+    bumpScale: 0.018
+  });
+  const moon = new THREE.Mesh(moonGeo, moonMat);
+  moon.position.set(1.85, 0.28, 0);
+  moonOrbit.add(moon);
+  const moonGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.19, 24, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0xbfdfff, transparent: true, opacity: 0.12,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    })
+  );
+  moon.add(moonGlow);
 
   // Lights - bright and even
   const ambient = new THREE.AmbientLight(0x8888cc, 0.7);
@@ -783,6 +1032,12 @@ async function initGlobe(){
   function animate(){
     animationId = requestAnimationFrame(animate);
     controls.update();
+    const now = Date.now();
+    stars.rotation.y += 0.00008;
+    brightStars.rotation.y -= 0.00012;
+    brightStarMat.opacity = 0.72 + Math.sin(now * 0.0014) * 0.18;
+    moonOrbit.rotation.y += 0.002;
+    moon.rotation.y += 0.004;
     renderer.render(scene, camera);
   }
   animate();
@@ -858,12 +1113,13 @@ function zoomToLocation(idx){
 }
 
 function showGeoInfo(idx){
+  activeGeoIdx = idx;
   const loc = geoLocations[idx];
   document.getElementById('panelIcon').textContent = loc.icon;
-  document.getElementById('panelTitle').textContent = loc.name;
-  document.getElementById('panelGrade').textContent = loc.grade;
-  document.getElementById('panelDesc').textContent = loc.desc;
-  document.getElementById('panelDetail').innerHTML = loc.detail;
+  document.getElementById('panelTitle').textContent = geoText(loc, 'name');
+  document.getElementById('panelGrade').textContent = geoText(loc, 'grade');
+  document.getElementById('panelDesc').textContent = geoText(loc, 'desc');
+  document.getElementById('panelDetail').innerHTML = geoText(loc, 'detail');
   const c = '#4FC3F7';
   document.getElementById('geoIllus').innerHTML =
     `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="background:linear-gradient(135deg,${c}22,${c}44,${c}22);border-radius:12px;width:100%;height:auto;display:block">
@@ -875,12 +1131,13 @@ function showGeoInfo(idx){
       <circle cx="360" cy="130" r="60" fill="${c}11"/>
       <path d="M0 130 Q80 100 200 115 T400 100 L400 160 L0 160 Z" fill="url(#gg)"/>
       <text x="200" y="70" text-anchor="middle" font-size="48" dominant-baseline="central">${loc.icon}</text>
-      <text x="200" y="115" text-anchor="middle" font-size="12" fill="${c}cc" font-weight="600" font-family="'Segoe UI','Microsoft YaHei',sans-serif">${loc.name} · ${loc.grade}</text>
+      <text x="200" y="115" text-anchor="middle" font-size="12" fill="${c}cc" font-weight="600" font-family="'Segoe UI','Microsoft YaHei',sans-serif">${geoText(loc, 'name')} · ${geoText(loc, 'grade')}</text>
     </svg>`;
   document.getElementById('geo-info-panel').classList.add('open');
 }
 
 function closeGeoPanel(){
+  activeGeoIdx = null;
   document.getElementById('geo-info-panel').classList.remove('open');
   if(controls){
     controls.autoRotate = true;
@@ -1284,11 +1541,220 @@ const historyData = [
   }
 ];
 
+const historyZh = {
+  eras:{
+    'Prehistoric Era':{era:'史前时代', period:'约公元前10000年 — 公元前3000年'},
+    'Ancient Civilizations':{era:'古代文明', period:'约公元前3100年 — 公元500年'},
+    'Middle Ages':{era:'中世纪', period:'公元500年 — 公元1500年'},
+    'Early Modern Era':{era:'近代早期', period:'公元1500年 — 公元1800年'},
+    'Modern Era':{era:'现代', period:'公元1800年 — 至今'}
+  },
+  events:{
+    'The Agricultural Revolution':{
+      title:'农业革命', brief:'人类从采集狩猎走向定居农业，文明由此萌芽',
+      desc:'农业革命是人类历史上的重要转折。约公元前10000年，肥沃新月地带的人们开始驯化植物和动物。人类从游动的采集狩猎生活转向定居农业，形成村落和城镇，为文明奠定基础。农业革命带来人口增长、社会分工和阶层差异，并最终促成最早城市和文明的出现。',
+      vocab:[['农业','种植作物并饲养动物以获取食物的活动'],['驯化','将野生动植物改造为适合人类使用的过程'],['定居','固定居住在一个地方，而不是四处迁徙'],['新石器革命','农业革命的学术名称']],
+      illus:'农业与定居'
+    },
+    'Sumerian Civilization':{
+      title:'苏美尔文明', brief:'最早的城市文明在底格里斯河与幼发拉底河之间兴起',
+      desc:'苏美尔文明兴起于美索不达米亚，即底格里斯河和幼发拉底河之间的“两河流域”，被认为是世界最早的文明之一。苏美尔人发明了楔形文字，建立城邦，发展数学、天文学和法律制度。他们建造宏伟的塔庙，并发明车轮、帆船等重要技术。',
+      vocab:[['楔形文字','苏美尔人发明的书写系统'],['城邦','以城市为中心的独立政治实体'],['美索不达米亚','两河之间的土地'],['塔庙','苏美尔人建造的阶梯式神庙']],
+      illus:'楔形文字与塔庙'
+    },
+    'Ancient Egypt':{
+      title:'古埃及', brief:'辉煌的古埃及文明在尼罗河沿岸和法老统治下兴起',
+      desc:'古埃及是世界著名古代文明之一，起源于尼罗河沿岸。法老作为神圣君主统治国家，埃及人建造金字塔和神庙，发明象形文字，并在数学、医学和天文学方面取得重要成就。尼罗河定期泛滥带来肥沃土壤，支撑了埃及文明三千多年的发展。',
+      vocab:[['法老','古埃及国王和神圣统治者'],['象形文字','古埃及使用图像符号的书写系统'],['金字塔','为埃及法老建造的巨大陵墓'],['尼罗河','维系古埃及文明的河流']],
+      illus:'金字塔与狮身人面像'
+    },
+    'Babylonian Empire':{
+      title:'巴比伦帝国', brief:'汉谟拉比王制定了世界上最早的成文法典之一',
+      desc:'巴比伦帝国是美索不达米亚的重要文明。汉谟拉比王制定了《汉谟拉比法典》，这是世界上最早且保存较完整的成文法典之一。法典刻在黑色石柱上，以“以眼还眼”等原则闻名。巴比伦还因宏伟建筑和传说中的空中花园而著称。',
+      vocab:[['法典','成文法律的汇编'],['汉谟拉比','制定著名法典的巴比伦第六任国王'],['空中花园','传说中的古代世界奇观之一'],['巴比伦','美索不达米亚的古代城市']],
+      illus:'汉谟拉比法典'
+    },
+    'Shang Dynasty China':{
+      title:'中国商朝', brief:'中国有同时代文字记录的早期王朝，青铜文明达到高峰',
+      desc:'商朝（约公元前1600—前1046年）是中国第一个有同时代文字记录的王朝。商代形成高度发展的青铜文明，铸造大量精美青铜器，并使用甲骨文进行占卜，甲骨文是已知最早的汉字形式。商朝还拥有较完善的国家结构、社会等级和宗教信仰。',
+      vocab:[['甲骨文','刻在龟甲和兽骨上的古代汉字'],['青铜','铜和锡的合金，是商代工艺的重要材料'],['王朝','同一家族统治者连续执政的时期'],['礼器','祭祀仪式中使用的青铜器']],
+      illus:'甲骨文与青铜器'
+    },
+    'Ancient Greece':{
+      title:'古希腊', brief:'民主、哲学、艺术和科学的重要发源地',
+      desc:'古希腊文明奠定了西方文化的重要基础。雅典发展出民主制度，成为现代民主政治的源头之一。希腊在哲学、艺术、科学和文学方面成就卓著，产生了苏格拉底、柏拉图、亚里士多德、欧几里得、阿基米德以及荷马史诗等。希腊城邦通过殖民和贸易传播文化。',
+      vocab:[['民主','公民参与决策的政治制度'],['哲学','追求知识和智慧的学问'],['城邦','独立治理自身的城市国家'],['奥林匹克','起源于古希腊的体育竞赛']],
+      illus:'帕特农神庙与希腊哲学'
+    },
+    'Qin Unification of China':{
+      title:'秦统一中国', brief:'秦始皇统一六国，建立中国第一个中央集权帝国',
+      desc:'公元前221年，秦始皇灭六国，实现中国历史上第一次真正意义上的统一。他建立秦朝，实行中央集权，统一文字、货币、度量衡，并修筑长城抵御北方游牧民族。秦朝虽短暂，却为此后两千多年的帝制中国奠定基础，并留下兵马俑等世界著名遗产。',
+      vocab:[['皇帝','帝国的最高统治者'],['中央集权','权力集中于中央政府'],['长城','为保护北方边疆修建的防御工程'],['兵马俑','秦始皇陵中的真人大小陶俑军阵']],
+      illus:'兵马俑与长城'
+    },
+    'Roman Empire':{
+      title:'罗马帝国', brief:'罗马从共和国转为帝国，成为地中海世界的强大力量',
+      desc:'罗马帝国是古代世界最强大的帝国之一。公元前27年，屋大维成为第一位罗马皇帝奥古斯都，标志着罗马从共和国进入帝国时期。鼎盛时，罗马控制整个地中海地区、西欧、北非和部分中东。罗马的工程、道路、法律、军队和拉丁文化深刻影响后世。',
+      vocab:[['帝国','由皇帝统治的大型国家'],['罗马法','罗马人发展出的法律体系'],['引水渠','罗马人建造的供水工程'],['斗兽场','罗马用于公共娱乐的大型圆形剧场']],
+      illus:'罗马斗兽场与引水渠'
+    },
+    'Fall of the Han Dynasty':{
+      title:'汉朝灭亡', brief:'中国强盛王朝之一结束，三国时代开启',
+      desc:'汉朝（公元前202—公元220年）是中国历史上最重要的王朝之一，延续四百多年。汉代确立儒学的官方地位，开通丝绸之路，并发明造纸术。公元220年，曹丕迫使汉献帝退位，汉朝结束，中国进入魏、蜀、吴三国鼎立时期。',
+      vocab:[['丝绸之路','连接中国与西方的贸易路线'],['儒学','孔子创立、强调伦理与社会秩序的思想体系'],['三国','魏、蜀、吴分立的历史时期'],['造纸术','中国古代四大发明之一']],
+      illus:'丝绸之路与三国'
+    },
+    'Fall of the Western Roman Empire':{
+      title:'西罗马帝国灭亡', brief:'日耳曼部落攻陷罗马，欧洲中世纪开始',
+      desc:'公元476年，日耳曼首领奥多亚克废黜西罗马末代皇帝罗慕路斯·奥古斯都，西罗马帝国灭亡。这一事件通常被视为古代世界的结束和欧洲中世纪的开端。此后欧洲进入长期封建化阶段，政治权力分散，基督教会成为重要的统一力量；东罗马帝国则继续存在近千年。',
+      vocab:[['罗马衰亡','476年西罗马帝国的结束'],['中世纪','欧洲约500—1500年的历史时期'],['封建制度','以土地和效忠关系为基础的社会制度'],['拜占庭帝国','东罗马帝国的延续']],
+      illus:'罗马帝国的衰落'
+    },
+    'Tang Dynasty Established':{
+      title:'唐朝建立', brief:'中国历史上文化和经济高度繁荣的黄金时代',
+      desc:'唐朝（618—907年）是中国最强盛、最繁荣的王朝之一，常被称为“中国的黄金时代”。都城长安是当时世界最大城市之一，人口超过百万。唐代疆域广阔，经济繁荣，文化灿烂，诗歌达到古典高峰，李白、杜甫、白居易等诗人享誉后世，丝绸之路贸易也十分兴盛。',
+      vocab:[['唐朝','中国重要王朝之一（618—907年）'],['长安','唐朝都城，今西安'],['丝绸之路贸易','唐代连接中国与西方的贸易网络'],['黄金时代','繁荣与文化成就突出的时期']],
+      illus:'唐代长安与唐诗'
+    },
+    'The Norman Conquest':{
+      title:'诺曼征服', brief:'诺曼底公爵威廉征服英格兰，深刻改变英国历史',
+      desc:'1066年，诺曼底公爵威廉率军渡过英吉利海峡，在黑斯廷斯战役中击败英格兰国王哈罗德，并加冕为英格兰国王。这一事件被称为诺曼征服，深刻改变了英格兰的语言、文化、政治和法律制度。大量法语词汇进入英语，封建制度也在英格兰全面确立。',
+      vocab:[['诺曼征服','1066年诺曼人入侵并征服英格兰'],['黑斯廷斯战役','诺曼征服中的决定性战役'],['封建制度','以土地为基础的社会等级制度'],['末日审判书','英格兰土地与财产调查记录']],
+      illus:'诺曼城堡与骑士'
+    },
+    'Mongol Empire Founded':{
+      title:'蒙古帝国建立', brief:'成吉思汗统一蒙古各部，建立历史上最大的陆上帝国',
+      desc:'1206年，铁木真统一蒙古高原各部，被尊为“成吉思汗”，建立蒙古帝国。鼎盛时期，蒙古帝国横跨欧亚大陆，从太平洋延伸到东欧，面积超过3300万平方千米，是历史上最大的连续陆上帝国。蒙古帝国促进了东西方交流，也带来了大规模战争与征服。',
+      vocab:[['成吉思汗','蒙古帝国的建立者'],['蒙古帝国','历史上最大的连续陆上帝国'],['蒙古和平','蒙古统治下欧亚交通相对稳定的时期'],['游牧','不断迁徙的生活方式']],
+      illus:'蒙古骑兵与草原'
+    },
+    'Yuan Dynasty Established':{
+      title:'元朝建立', brief:'忽必烈建立元朝，成为第一个统治全中国的少数民族王朝',
+      desc:'1271年，成吉思汗之孙忽必烈建立元朝，定都大都（今北京）。1279年，元灭南宋，实现中国第一次由非汉族政权完成的统一。元代国际交流活跃，威尼斯人马可·波罗曾到中国并记录元朝的繁荣。元朝在科学、文化和贸易方面也有所发展。',
+      vocab:[['忽必烈','元朝建立者，成吉思汗之孙'],['元朝','由蒙古族建立并统治中国的王朝'],['马可·波罗','到访元代中国的威尼斯旅行家'],['汗八里','元朝都城，即今北京']],
+      illus:'元大都与马可·波罗'
+    },
+    'Zheng He\'s Voyages':{
+      title:'郑和下西洋', brief:'明代航海家郑和七次远航印度洋并到达非洲',
+      desc:'郑和是明代著名航海家、外交家和舰队统帅。1405年至1433年，他率领庞大的宝船船队七下西洋，访问东南亚、南亚、中东和非洲东海岸30多个国家和地区。郑和宝船是历史上最大的木制帆船之一，远大于哥伦布和达·伽马的船只。远航展示了明朝实力，并促进文化交流。',
+      vocab:[['郑和','明代伟大的航海家和使者'],['宝船','郑和船队使用的大型船只'],['远航','长距离海上旅行'],['印度洋贸易','明代印度洋地区的贸易网络']],
+      illus:'郑和宝船船队'
+    },
+    'Fall of Constantinople':{
+      title:'君士坦丁堡陷落', brief:'奥斯曼帝国攻占君士坦丁堡，中世纪走向终结',
+      desc:'1453年，奥斯曼苏丹穆罕默德二世攻占君士坦丁堡，东罗马帝国（拜占庭帝国）灭亡。这一事件常被视为中世纪结束和近代早期开端的重要标志。君士坦丁堡陷落促使许多希腊学者带着古典文献逃往意大利，推动了文艺复兴。奥斯曼帝国将其改名为伊斯坦布尔并定为首都。',
+      vocab:[['君士坦丁堡','东罗马帝国首都'],['奥斯曼帝国','取代拜占庭的土耳其帝国'],['君士坦丁堡陷落','1453年君士坦丁堡被攻占'],['文艺复兴','欧洲文化和思想的复兴运动']],
+      illus:'圣索菲亚大教堂与君士坦丁堡陷落'
+    },
+    'Columbus Reaches the Americas':{
+      title:'哥伦布到达美洲', brief:'哥伦布横渡大西洋，到达加勒比地区，开启欧洲与美洲持续接触',
+      desc:'1492年，意大利航海家哥伦布在西班牙伊莎贝拉女王支持下向西航行，寻找通往亚洲的新航路，最终抵达巴哈马群岛。这一航行开启了欧洲对美洲殖民扩张的时代，深刻改变全球格局。“哥伦布大交换”使东西半球之间的植物、动物、疾病、人口和文化发生大规模交流。',
+      vocab:[['哥伦布','代表欧洲到达美洲的航海家'],['新大陆','欧洲人对美洲的称呼'],['哥伦布大交换','东西半球之间动植物和文化等的交流'],['殖民','占领并控制外来土地']],
+      illus:'哥伦布船队与航海'
+    },
+    'The Protestant Reformation':{
+      title:'宗教改革', brief:'马丁·路德挑战天主教会权威，西方基督教发生分裂',
+      desc:'1517年，德国神学家马丁·路德在维滕贝格教堂门上张贴《九十五条论纲》，公开批评罗马天主教会腐败和出售赎罪券。这一事件引发宗教改革，使西方基督教分裂为新教和天主教。宗教改革深刻改变了欧洲政治格局、文化价值和宗教结构。',
+      vocab:[['宗教改革','16世纪导致西方基督教分裂的宗教运动'],['马丁·路德','发起宗教改革的德国修士'],['新教','脱离天主教会的基督教派别'],['赎罪券','教会出售的减免罪罚凭证']],
+      illus:'宗教改革与圣经'
+    },
+    'Qing Dynasty Established':{
+      title:'清朝建立', brief:'满族入主中原，建立中国最后一个帝制王朝',
+      desc:'1644年，满洲军队在吴三桂协助下进入北京，击败李自成农民军，顺治帝即位，标志着清朝统治的开始。清朝是中国历史上最后一个帝制王朝，由满族建立。康乾盛世时期，清帝国疆域空前辽阔，人口增长，经济繁荣。',
+      vocab:[['清朝','中国最后一个帝制王朝（1644—1912年）'],['满族','建立清朝的民族'],['康乾盛世','清朝最繁荣的时期'],['紫禁城','北京的皇宫建筑群']],
+      illus:'紫禁城与清代皇帝'
+    },
+    'American Independence':{
+      title:'美国独立', brief:'十三个殖民地宣布独立，美利坚合众国诞生',
+      desc:'1776年7月4日，北美十三个殖民地大陆会议通过由托马斯·杰斐逊起草的《独立宣言》，正式宣布脱离英国统治，美国由此诞生。美国独立战争（1775—1783年）中，乔治·华盛顿领导殖民地军队战胜英国。美国独立是近代较早成功的反殖民革命之一。',
+      vocab:[['独立宣言','宣布美国脱离英国独立的文件'],['革命','根本性的政治和社会变革'],['民主','美国建立的政治制度之一'],['宪法','美国的根本法律']],
+      illus:'独立宣言与美国国旗'
+    },
+    'French Revolution':{
+      title:'法国大革命', brief:'巴士底狱被攻占，法国君主制被推翻',
+      desc:'1789年7月14日，巴黎民众攻占巴士底狱，标志着法国大革命爆发。大革命推翻波旁王朝的绝对君主制，提出“自由、平等、博爱”的理想，并产生《人权和公民权宣言》，为现代人权观念奠定基础。',
+      vocab:[['法国大革命','1789年爆发的法国社会革命'],['巴士底狱','象征王权的监狱堡垒'],['自由、平等、博爱','法国大革命口号'],['共和国','没有君主的政府形式']],
+      illus:'法国大革命与自由引导人民'
+    },
+    'The Industrial Revolution':{
+      title:'工业革命', brief:'蒸汽机推动工业时代到来，改变人类生产方式',
+      desc:'工业革命始于18世纪中期的英国，以蒸汽机改良和广泛使用为重要标志。它使人类生产从手工劳动转向机器生产，改变纺织、钢铁和交通运输等行业。工厂制度、铁路网络和城市化迅速发展，深刻改变社会结构，同时也带来环境问题。',
+      vocab:[['工业革命','从手工生产转向机器生产的变革'],['蒸汽机','推动工业革命的关键发明'],['工厂制度','集中化的大规模生产方式'],['城市化','人口从乡村向城市迁移的过程']],
+      illus:'蒸汽机与工业时代'
+    },
+    'The Opium War':{
+      title:'鸦片战争', brief:'英国对中国发动战争，中国近代史由此开始',
+      desc:'1840年，英国以虎门销烟为借口发动第一次鸦片战争（1840—1842年）。由于清政府腐败落后，中国战败，被迫签订第一个不平等条约《南京条约》，割让香港岛，开放五个通商口岸，并赔款2100万银元。鸦片战争标志着中国近代史的开端。',
+      vocab:[['鸦片战争','1840年英国与中国之间的战争'],['不平等条约','在胁迫下强加给中国的条约'],['南京条约','中国签订的第一个不平等条约'],['半殖民地','主权部分丧失的国家状态']],
+      illus:'鸦片战争与南京条约'
+    },
+    'World War I':{
+      title:'第一次世界大战', brief:'人类历史上第一次全球性战争重塑世界政治秩序',
+      desc:'第一次世界大战（1914—1918年）是人类历史上第一次全球规模的战争，主要在协约国和同盟国之间展开。战争造成约1600万人死亡，并广泛使用机枪、毒气、坦克等新式武器。战后奥匈帝国和奥斯曼帝国瓦解，德国战败受辱，也为第二次世界大战埋下伏笔。',
+      vocab:[['第一次世界大战','1914—1918年的全球战争'],['同盟体系','欧洲列强之间的军事联盟网络'],['堑壕战','以战壕为主要阵地的战争形式'],['凡尔赛条约','结束一战的和平条约']],
+      illus:'一战战壕与凡尔赛条约'
+    },
+    'World War II':{
+      title:'第二次世界大战', brief:'人类历史上规模最大的战争，深刻塑造现代世界',
+      desc:'第二次世界大战（1939—1945年）是人类历史上规模最大、破坏最严重的战争。战争在轴心国和同盟国之间展开，造成约7000万人死亡，其中包括南京大屠杀和犹太人大屠杀等针对平民的系统性屠杀。1945年，美国向日本投下原子弹，战争结束。战后联合国成立，冷战时代开始。',
+      vocab:[['第二次世界大战','1939—1945年的全球战争'],['犹太人大屠杀','纳粹对欧洲犹太人的种族灭绝'],['原子弹','二战末期使用的核武器'],['联合国','二战后成立的国际组织']],
+      illus:'第二次世界大战与联合国'
+    },
+    'Founding of the People\'s Republic of China':{
+      title:'中华人民共和国成立', brief:'毛泽东在天安门宣布中华人民共和国成立',
+      desc:'1949年10月1日，毛泽东主席在天安门庄严宣告中华人民共和国成立，标志着中国革命胜利和现代中国历史的新起点。中国人民从此开始社会主义建设和现代化道路。从战后恢复到改革开放后的经济腾飞，中国发生了巨大变化。',
+      vocab:[['中华人民共和国','1949年以来中国的正式国名'],['毛泽东','中华人民共和国的主要缔造者'],['天安门','中华人民共和国成立典礼举行的广场'],['革命','根本性的社会和政治变革']],
+      illus:'天安门广场与新中国成立'
+    },
+    'Collapse of the Soviet Union':{
+      title:'苏联解体', brief:'苏联解体，冷战和两极格局结束',
+      desc:'1991年12月25日，苏联总统戈尔巴乔夫辞职，次日苏联最高苏维埃宣布苏联解体。这个曾与美国并列的超级大国分裂为15个独立国家。苏联解体标志着冷战结束和两极世界格局终结，世界进入新的多极化阶段，并深刻影响全球政治、经济和国际关系。',
+      vocab:[['苏联','苏维埃社会主义共和国联盟'],['冷战','美国和苏联之间的地缘政治对抗'],['解体','国家或制度的瓦解'],['后冷战时代','冷战结束后的全球新时期']],
+      illus:'苏联解体'
+    }
+  }
+};
+
+function eraText(era, field){
+  return choose(era[field], historyZh.eras[era.era]?.[field] || era[field]);
+}
+
+function eventText(ev, field){
+  return choose(ev[field], historyZh.events[ev.title]?.[field] || ev[field]);
+}
+
+function yearText(year){
+  if(!isChinese()) return year;
+  const approx = /^c\.\s*/.test(year);
+  let text = year.replace(/^c\.\s*/, '');
+  if(text.includes('BCE')){
+    return `${approx ? '约' : ''}公元前${text.replace('BCE', '').trim()}年`;
+  }
+  if(text.includes('CE')){
+    return `${approx ? '约' : ''}公元${text.replace('CE', '').trim()}年`;
+  }
+  return text;
+}
+
+function vocabText(ev){
+  const zh = historyZh.events[ev.title]?.vocab;
+  if(!isChinese() || !zh) return ev.vocab;
+  return zh.map(([word, meaning]) => ({ word, meaning }));
+}
+
+function illusText(ev){
+  return choose(ev.illus, historyZh.events[ev.title]?.illus || ev.illus);
+}
+
 // ============================================================
 // HISTORY RENDER
 // ============================================================
-function renderHistory(){
+function renderHistory(force=false){
   const container = document.getElementById('historyContainer');
+  if(force){
+    container.innerHTML = '';
+    delete container.dataset.rendered;
+  }
   if(container.dataset.rendered) return;
   container.dataset.rendered = 'true';
 
@@ -1300,19 +1766,19 @@ function renderHistory(){
     section.innerHTML = `
       <div class="history-era-header" style="background:${era.color}18" onclick="toggleEra(this)">
         <span class="era-icon">${era.icon}</span>
-        <div class="era-info">
-          <div class="era-name">${era.era}</div>
-          <div class="era-period">${era.period}</div>
+          <div class="era-info">
+          <div class="era-name">${eraText(era, 'era')}</div>
+          <div class="era-period">${eraText(era, 'period')}</div>
         </div>
         <span class="era-toggle">▼</span>
       </div>
       <div class="era-events">
         ${era.events.map((ev, vi) => `
           <div class="history-event" onclick="showHistoryDetail(${ei},${vi})">
-            <div class="event-year">${ev.year}</div>
+            <div class="event-year">${yearText(ev.year)}</div>
             <div class="event-content">
-              <div class="event-title">${ev.title}</div>
-              <div class="event-brief">${ev.brief}</div>
+              <div class="event-title">${eventText(ev, 'title')}</div>
+              <div class="event-brief">${eventText(ev, 'brief')}</div>
             </div>
             <span class="event-emoji">${ev.icon}</span>
           </div>
@@ -1329,15 +1795,16 @@ function toggleEra(header){
 }
 
 function showHistoryDetail(ei, vi){
+  activeHistoryDetail = { ei, vi };
   const ev = historyData[ei].events[vi];
   const era = historyData[ei];
   document.getElementById('detIcon').textContent = ev.icon;
-  document.getElementById('detYear').textContent = ev.year;
-  document.getElementById('detTitle').textContent = ev.title;
-  document.getElementById('detDesc').textContent = ev.desc;
+  document.getElementById('detYear').textContent = yearText(ev.year);
+  document.getElementById('detTitle').textContent = eventText(ev, 'title');
+  document.getElementById('detDesc').textContent = eventText(ev, 'desc');
 
   const vocabEl = document.getElementById('detVocab');
-  vocabEl.innerHTML = ev.vocab.map(v =>
+  vocabEl.innerHTML = vocabText(ev).map(v =>
     `<span class="vocab-tag"><strong>${v.word}</strong> ${v.meaning}</span>`
   ).join('');
 
@@ -1364,13 +1831,13 @@ function showHistoryDetail(ei, vi){
     </svg>`;
   }
 
-  document.getElementById('detIllus').innerHTML = makeSVG(ev.icon, ev.illus, era.color);
+  document.getElementById('detIllus').innerHTML = makeSVG(ev.icon, illusText(ev), era.color);
 
   function tryLoadImage(urls, idx){
     if(!urls || idx >= urls.length) return;
     const img = new Image();
     img.className = 'detail-image';
-    img.alt = ev.title;
+    img.alt = eventText(ev, 'title');
     img.style.display = 'none';
     img.onload = function(){
       if(img.naturalWidth > 0 && img.naturalHeight > 0){
@@ -1379,7 +1846,7 @@ function showHistoryDetail(ei, vi){
         img.style.display = 'block';
         const label = document.createElement('div');
         label.style.cssText = 'text-align:center;font-size:13px;color:#999;margin-top:8px;font-weight:500';
-        label.textContent = ev.illus;
+        label.textContent = illusText(ev);
         document.getElementById('detIllus').appendChild(label);
       } else {
         tryLoadImage(urls, idx+1);
@@ -1411,6 +1878,7 @@ function showHistoryDetail(ei, vi){
 }
 
 function closeHistoryDetail(){
+  activeHistoryDetail = null;
   document.getElementById('history-detail-overlay').classList.remove('open');
   document.getElementById('history-detail').classList.remove('open');
 }
@@ -1429,6 +1897,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Preload fonts & touch support
+applyLanguage();
 console.log('🌍 Social Study Learning Platform loaded');
 </script>
 </body>
