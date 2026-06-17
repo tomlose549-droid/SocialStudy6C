@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Study - 社会学科学习平台</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Microsoft YaHei',sans-serif}
+
+:root{
+  --tiffany:#81D8D0;
+  --tiffany-dark:#5BC0BE;
+  --tiffany-light:#B8E8E4;
+  --tiffany-pale:#E8F8F5;
+  --white:#FFFFFF;
+  --dark:#2C3E50;
+  --gray:#7F8C8D;
+  --shadow:0 8px 32px rgba(0,0,0,0.12);
+  --radius:20px;
+}
+
+body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
+.hidden{display:none!important}
+.page{position:fixed;top:0;left:0;width:100%;height:100%;overflow:hidden;transition:opacity 0.6s ease,transform 0.6s ease}
+.page.active{opacity:1;transform:scale(1);pointer-events:auto}
+.page:not(.active){opacity:0;transform:scale(0.95);pointer-events:none}
+
+/* ========== HOMEPAGE ========== */
+#homepage{
+  background:linear-gradient(135deg,var(--tiffany) 0%,var(--tiffany-dark) 50%,#4DB6AC 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:relative;overflow:hidden
+}
+#homepage::before{
+  content:'';position:absolute;width:200%;height:200%;
+  background:radial-gradient(ellipse at 30% 50%,rgba(255,255,255,0.15) 0%,transparent 50%),
+             radial-gradient(ellipse at 70% 20%,rgba(255,255,255,0.1) 0%,transparent 50%);
+  animation:floatBg 20s ease-in-out infinite
+}
+@keyframes floatBg{
+  0%,100%{transform:translate(0,0) rotate(0deg)}
+  33%{transform:translate(-2%,-1%) rotate(1deg)}
+  66%{transform:translate(2%,1%) rotate(-1deg)}
+}
+.home-bg-shapes{position:absolute;width:100%;height:100%;overflow:hidden;pointer-events:none}
+.home-bg-shapes span{
+  position:absolute;display:block;border-radius:50%;
+  background:rgba(255,255,255,0.08);animation:floatShape 15s infinite
+}
+.home-bg-shapes span:nth-child(1){width:300px;height:300px;top:-5%;left:-5%;animation-delay:0s}
+.home-bg-shapes span:nth-child(2){width:200px;height:200px;bottom:10%;right:-3%;animation-delay:-3s}
+.home-bg-shapes span:nth-child(3){width:150px;height:150px;top:40%;left:60%;animation-delay:-7s}
+.home-bg-shapes span:nth-child(4){width:250px;height:250px;top:60%;left:-2%;animation-delay:-5s}
+@keyframes floatShape{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(20px,-20px) scale(1.1)}
+}
+.home-content{position:relative;z-index:2;text-align:center;padding:20px}
+.home-icon{font-size:72px;margin-bottom:16px;animation:bounce 2s infinite}
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+}
+.home-title{
+  font-size:48px;font-weight:800;color:var(--white);
+  text-shadow:0 2px 20px rgba(0,0,0,0.1);
+  letter-spacing:2px;margin-bottom:8px
+}
+.home-subtitle{
+  font-size:18px;color:rgba(255,255,255,0.9);
+  margin-bottom:40px;letter-spacing:4px;font-weight:300
+}
+.home-cards{
+  display:flex;gap:30px;flex-wrap:wrap;justify-content:center
+}
+.home-card{
+  width:280px;padding:40px 30px;background:rgba(255,255,255,0.95);
+  border-radius:var(--radius);cursor:pointer;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 10px 40px rgba(0,0,0,0.08);
+  position:relative;overflow:hidden;backdrop-filter:blur(10px)
+}
+.home-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px
+}
+.home-card.geo::before{background:linear-gradient(90deg,#4CAF50,#81C784)}
+.home-card.hist::before{background:linear-gradient(90deg,#FF7043,#FFAB91)}
+.home-card:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.home-card:active{transform:translateY(-2px) scale(0.98)}
+.home-card-icon{font-size:56px;margin-bottom:16px;display:block}
+.home-card h2{font-size:24px;color:var(--dark);margin-bottom:8px}
+.home-card p{font-size:14px;color:var(--gray);line-height:1.6}
+.home-card .card-badge{
+  display:inline-block;padding:4px 16px;border-radius:20px;
+  font-size:12px;font-weight:600;margin-top:12px;color:white
+}
+.home-card.geo .card-badge{background:linear-gradient(90deg,#4CAF50,#81C784)}
+.home-card.hist .card-badge{background:linear-gradient(90deg,#FF7043,#FFAB91)}
+.home-footer{position:absolute;bottom:20px;color:rgba(255,255,255,0.6);font-size:13px;letter-spacing:1px}
+
+/* ========== HEADER BAR (shared) ========== */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;height:60px;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding:0 24px;
+  box-shadow:0 2px 20px rgba(0,0,0,0.06);z-index:100;
+  border-bottom:1px solid rgba(0,0,0,0.04)
+}
+.top-bar .back-btn{
+  width:40px;height:40px;border-radius:12px;border:none;
+  background:var(--tiffany-pale);cursor:pointer;
+  font-size:20px;display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s;color:var(--tiffany-dark);margin-right:16px
+}
+.top-bar .back-btn:hover{background:var(--tiffany);color:white;transform:scale(1.05)}
+.top-bar .bar-title{font-size:18px;font-weight:700;color:var(--dark)}
+.top-bar .bar-badge{
+  margin-left:12px;padding:3px 14px;border-radius:20px;
+  font-size:12px;font-weight:600;color:white
+}
+.top-bar .bar-badge.geo-badge{background:linear-gradient(90deg,#4CAF50,#81C784)}
+.top-bar .bar-badge.hist-badge{background:linear-gradient(90deg,#FF7043,#FFAB91)}
+
+/* ========== GEOGRAPHY PAGE ========== */
+#geography-page{background:#1a1a2e}
+#globe-container{width:100%;height:100%;display:block}
+#geo-info-panel{
+  position:fixed;bottom:-100%;left:50%;transform:translateX(-50%);
+  width:min(680px,92vw);max-height:70vh;
+  background:rgba(255,255,255,0.97);backdrop-filter:blur(16px);
+  border-radius:24px 24px 0 0;padding:0;
+  box-shadow:0 -10px 60px rgba(0,0,0,0.3);
+  transition:bottom 0.6s cubic-bezier(0.34,1.56,0.64,1);z-index:50;
+  overflow-y:auto
+}
+#geo-info-panel.open{bottom:0}
+#geo-info-panel .panel-handle{
+  width:40px;height:4px;border-radius:2px;background:#ddd;
+  margin:12px auto 0;cursor:pointer
+}
+#geo-info-panel .panel-header{
+  padding:16px 28px 0;display:flex;align-items:center;gap:16px
+}
+#geo-info-panel .panel-icon{font-size:40px}
+#geo-info-panel .panel-title{font-size:22px;font-weight:700;color:var(--dark);flex:1}
+#geo-info-panel .panel-grade{
+  padding:6px 16px;border-radius:20px;background:var(--tiffany-pale);
+  color:var(--tiffany-dark);font-size:13px;font-weight:600
+}
+#geo-info-panel .panel-body{padding:16px 28px 28px}
+.geo-illustration{margin-bottom:12px}
+#geo-info-panel .panel-desc{
+  font-size:15px;line-height:1.8;color:#555;margin-bottom:12px
+}
+#geo-info-panel .panel-detail{
+  font-size:14px;line-height:1.7;color:#666;
+  padding:16px;background:#f8f9fa;border-radius:12px;
+  border-left:4px solid var(--tiffany)
+}
+#geo-info-panel .panel-close{
+  display:block;width:100%;padding:12px;margin-top:8px;
+  border:none;border-radius:12px;background:var(--tiffany-pale);
+  color:var(--tiffany-dark);font-size:15px;font-weight:600;
+  cursor:pointer;transition:all 0.3s
+}
+#geo-info-panel .panel-close:hover{background:var(--tiffany);color:white}
+.geo-hint{
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,0.5);font-size:14px;z-index:10;
+  background:rgba(0,0,0,0.3);padding:10px 24px;border-radius:20px;
+  backdrop-filter:blur(8px);letter-spacing:1px;
+  animation:pulse 2s ease-in-out infinite
+}
+@keyframes pulse{
+  0%,100%{opacity:0.5}
+  50%{opacity:1}
+}
+.geo-loader{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:rgba(255,255,255,0.6);font-size:16px;z-index:5;
+  text-align:center;letter-spacing:2px
+}
+.geo-loader .loader-spin{
+  display:block;width:40px;height:40px;margin:0 auto 16px;
+  border:3px solid rgba(255,255,255,0.1);
+  border-top-color:var(--tiffany);border-radius:50%;
+  animation:spin 1s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ========== HISTORY PAGE ========== */
+#history-page{
+  background:linear-gradient(135deg,#FFF8E1 0%,#FFF3E0 50%,#FCE4EC 100%);
+  overflow-y:auto
+}
+#history-page .top-bar{
+  position:sticky;top:0;z-index:100
+}
+.history-container{padding:20px 24px 40px;max-width:1200px;margin:0 auto}
+.history-era{
+  margin-bottom:28px;background:rgba(255,255,255,0.85);
+  border-radius:var(--radius);overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);transition:all 0.3s
+}
+.history-era:hover{box-shadow:0 8px 30px rgba(0,0,0,0.1)}
+.history-era-header{
+  padding:18px 24px;display:flex;align-items:center;gap:16px;
+  cursor:pointer;transition:all 0.3s;
+  user-select:none
+}
+.history-era-header:hover{filter:brightness(1.05)}
+.history-era-header .era-icon{font-size:32px}
+.history-era-header .era-info{flex:1}
+.history-era-header .era-name{font-size:18px;font-weight:700;color:var(--dark)}
+.history-era-header .era-period{font-size:13px;opacity:0.7;margin-top:2px}
+.history-era-header .era-toggle{
+  font-size:20px;transition:transform 0.4s;opacity:0.5
+}
+.history-era.collapsed .era-toggle{transform:rotate(-90deg)}
+.history-era.collapsed .era-events{max-height:0;padding:0 24px;opacity:0}
+.era-events{
+  max-height:5000px;padding:0 24px 20px;
+  transition:all 0.5s ease;overflow:hidden
+}
+.history-event{
+  display:flex;gap:16px;padding:14px 16px;margin-bottom:8px;
+  border-radius:14px;cursor:pointer;transition:all 0.3s;
+  background:rgba(255,255,255,0.6);border:1px solid rgba(0,0,0,0.04);
+  align-items:flex-start
+}
+.history-event:hover{
+  background:white;transform:translateX(4px);
+  box-shadow:0 4px 16px rgba(0,0,0,0.06)
+}
+.history-event:active{transform:translateX(2px) scale(0.99)}
+.history-event .event-year{
+  min-width:90px;font-size:15px;font-weight:800;color:var(--tiffany-dark);
+  padding-top:2px
+}
+.history-event .event-content{flex:1}
+.history-event .event-title{font-size:15px;font-weight:600;color:var(--dark);margin-bottom:3px}
+.history-event .event-brief{font-size:13px;color:#888;line-height:1.5}
+.history-event .event-emoji{font-size:28px;flex-shrink:0;margin-top:2px}
+
+/* History detail panel */
+#history-detail-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);
+  z-index:200;opacity:0;pointer-events:none;transition:opacity 0.4s
+}
+#history-detail-overlay.open{opacity:1;pointer-events:auto}
+#history-detail{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.9);
+  width:min(700px,92vw);max-height:85vh;
+  background:white;border-radius:24px;overflow-y:auto;
+  z-index:201;opacity:0;pointer-events:none;
+  transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 30px 80px rgba(0,0,0,0.3)
+}
+#history-detail.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+#history-detail .detail-header{
+  padding:24px 28px 16px;display:flex;align-items:center;gap:16px;
+  border-bottom:1px solid #f0f0f0
+}
+#history-detail .detail-icon{font-size:44px}
+#history-detail .detail-title-group{flex:1}
+#history-detail .detail-year{font-size:14px;font-weight:700;color:var(--tiffany-dark)}
+#history-detail .detail-title{font-size:22px;font-weight:700;color:var(--dark);margin-top:2px}
+#history-detail .detail-close{
+  width:36px;height:36px;border:none;border-radius:50%;
+  background:#f5f5f5;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.3s;color:#999;flex-shrink:0
+}
+#history-detail .detail-close:hover{background:#eee;color:var(--dark)}
+#history-detail .detail-body{padding:20px 28px 28px}
+#history-detail .detail-desc{
+  font-size:15px;line-height:1.9;color:#555;margin-bottom:16px
+}
+#history-detail .detail-vocab-title{
+  font-size:14px;font-weight:700;color:var(--dark);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px
+}
+#history-detail .detail-vocab{
+  display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px
+}
+#history-detail .vocab-tag{
+  padding:6px 14px;border-radius:20px;font-size:13px;
+  background:var(--tiffany-pale);color:var(--tiffany-dark);
+  font-weight:500;border:1px solid rgba(91,192,190,0.2)
+}
+#history-detail .vocab-tag strong{font-weight:700;margin-right:4px}
+#history-detail .detail-illustration{
+  margin-top:16px;border-radius:16px;overflow:hidden;
+  position:relative;min-height:200px;background:transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center
+}
+#history-detail .detail-illustration .detail-image{
+  width:100%;max-height:280px;object-fit:cover;border-radius:12px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.1);transition:all 0.4s;
+  background:#f0f4f8;display:block
+}
+#history-detail .detail-illustration svg{
+  width:100%;height:auto;display:block;border-radius:12px
+}
+
+/* Scrollbar styling */
+#geo-info-panel::-webkit-scrollbar,
+#history-detail::-webkit-scrollbar,
+.history-container::-webkit-scrollbar{width:6px}
+#geo-info-panel::-webkit-scrollbar-track,
+#history-detail::-webkit-scrollbar-track,
+.history-container::-webkit-scrollbar-track{background:transparent}
+#geo-info-panel::-webkit-scrollbar-thumb,
+#history-detail::-webkit-scrollbar-thumb,
+.history-container::-webkit-scrollbar-thumb{background:#ddd;border-radius:3px}
+#geo-info-panel::-webkit-scrollbar-thumb:hover,
+#history-detail::-webkit-scrollbar-thumb:hover,
+.history-container::-webkit-scrollbar-thumb:hover{background:#ccc}
+
+/* Responsive */
+@media(max-width:640px){
+  .home-title{font-size:32px}
+  .home-subtitle{font-size:14px}
+  .home-card{width:240px;padding:30px 20px}
+  .home-card-icon{font-size:44px}
+  .home-icon{font-size:52px}
+  .history-event{flex-wrap:wrap}
+  .history-event .event-year{min-width:70px;font-size:13px}
+  #geo-info-panel .panel-header{flex-wrap:wrap}
+  #geo-info-panel .panel-title{font-size:18px}
+  .history-era-header{padding:14px 16px}
+  .history-era-events{padding:0 16px 16px}
+  .history-event{padding:10px 12px}
+  .home-cards{gap:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HOMEPAGE ============ -->
+<div id="homepage" class="page active">
+  <div class="home-bg-shapes">
+    <span></span><span></span><span></span><span></span>
+  </div>
+  <div class="home-content">
+    <div class="home-icon">🌍</div>
+    <h1 class="home-title">Social Study</h1>
+    <p class="home-subtitle">Explore the World · Travel Through History · Inspire the Future</p>
+    <div class="home-cards">
+      <div class="home-card geo" onclick="navigateTo('geography')">
+        <span class="home-card-icon">🌏</span>
+        <h2>Geography</h2>
+        <p>Explore every corner of the Earth<br>Physical & Human Geography</p>
+        <span class="card-badge">3D Interactive Globe</span>
+      </div>
+      <div class="home-card hist" onclick="navigateTo('history')">
+        <span class="home-card-icon">📜</span>
+        <h2>History</h2>
+        <p>Travel through the river of time<br>Witness the evolution of civilization</p>
+        <span class="card-badge">Complete Timeline</span>
+      </div>
+    </div>
+  </div>
+  <div class="home-footer">No.2 Affiliated Middle School of ECNU · International Division · Grade 6-9 Social Studies</div>
+</div>
+
+<!-- ============ GEOGRAPHY PAGE ============ -->
+<div id="geography-page" class="page">
+  <div class="top-bar">
+    <button class="back-btn" onclick="navigateTo('home')">←</button>
+    <span class="bar-title">Geography · 3D Interactive Globe</span>
+    <span class="bar-badge geo-badge">3D Interactive Globe</span>
+  </div>
+  <div id="globe-container"></div>
+  <div class="geo-loader" id="geoLoader">
+    <span class="loader-spin"></span>
+    Loading Earth...
+  </div>
+  <div class="geo-hint">🌐 Drag to rotate · Click locations to explore</div>
+  <div id="geo-info-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-header">
+      <span class="panel-icon" id="panelIcon">🌍</span>
+      <span class="panel-title" id="panelTitle">Location Name</span>
+      <span class="panel-grade" id="panelGrade">Grade 7</span>
+    </div>
+    <div class="panel-body">
+      <div id="geoIllus" class="geo-illustration"></div>
+      <div class="panel-desc" id="panelDesc">Description</div>
+      <div class="panel-detail" id="panelDetail">Learning content details</div>
+      <button class="panel-close" onclick="closeGeoPanel()">Close ↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HISTORY PAGE ============ -->
+<div id="history-page" class="page">
+  <div class="top-bar">
+    <button class="back-btn" onclick="navigateTo('home')">←</button>
+    <span class="bar-title">History · Timeline of Civilization</span>
+    <span class="bar-badge hist-badge">From Ancient to Modern</span>
+  </div>
+  <div class="history-container" id="historyContainer"></div>
+  <div id="history-detail-overlay"></div>
+  <div id="history-detail">
+    <div class="detail-header">
+      <span class="detail-icon" id="detIcon">📜</span>
+      <div class="detail-title-group">
+        <div class="detail-year" id="detYear">3100 BCE</div>
+        <div class="detail-title" id="detTitle">Event Title</div>
+      </div>
+      <button class="detail-close" onclick="closeHistoryDetail()">✕</button>
+    </div>
+    <div class="detail-body">
+      <div class="detail-desc" id="detDesc">Detailed description</div>
+      <div class="detail-vocab-title">📖 Key Vocabulary</div>
+      <div class="detail-vocab" id="detVocab"></div>
+      <div class="detail-illustration" id="detIllus">🖼️</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigateTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  if(page==='home'){
+    document.getElementById('homepage').classList.add('active');
+  }else if(page==='geography'){
+    document.getElementById('geography-page').classList.add('active');
+    initGlobe();
+  }else if(page==='history'){
+    document.getElementById('history-page').classList.add('active');
+    renderHistory();
+  }
+}
+
+// ============================================================
+// GEOGRAPHY DATA
+// ============================================================
+const geoLocations = [
+  {
+    name:'Amazon Rainforest', lat:-3.4653, lon:-62.2159, icon:'🌳',
+    grade:'Grade 7 · Biogeography',
+    desc:'The Amazon Rainforest is the largest tropical rainforest in the world, often called the "Lungs of the Earth." It covers about 7 million square kilometers across 9 countries including Brazil, Peru, and Colombia.',
+    detail:'📚 Learning Content: In Grade 7 Biogeography, you will study tropical rainforest ecosystems, biodiversity, the impact of climate change on rainforests, and sustainable development. The Amazon is home to more than 10% of all known species on Earth, making it one of the most biodiverse places on the planet.'
+  },
+  {
+    name:'Nile River', lat:26.8206, lon:30.8025, icon:'🏞️',
+    grade:'Grade 6 · World Geography',
+    desc:'The Nile River is the longest river in the world, stretching approximately 6,650 km. It flows through 11 countries in northeastern Africa before emptying into the Mediterranean Sea.',
+    detail:'📚 Learning Content: In Grade 6 World Geography, you will learn about the importance of the Nile to ancient Egyptian civilization, the formation of river landforms, and the river\'s impact on agriculture and economy. The Nile\'s annual flooding deposited rich silt that made farming possible.'
+  },
+  {
+    name:'Himalayas', lat:27.9881, lon:86.9250, icon:'🏔️',
+    grade:'Grade 7 · Physical Geography',
+    desc:'The Himalayas are the highest mountain range in the world, with over 100 peaks exceeding 7,000 meters. It includes Mount Everest (8,848.86 m), the world\'s tallest mountain.',
+    detail:'📚 Learning Content: In Grade 7 Physical Geography, you will study plate tectonics — the collision of the Indian and Eurasian plates formed the Himalayas — as well as vertical climate zones and the unique alpine ecosystem.'
+  },
+  {
+    name:'Great Barrier Reef', lat:-18.2871, lon:147.6992, icon:'🐠',
+    grade:'Grade 7 · Marine Geography',
+    desc:'The Great Barrier Reef is the largest coral reef system in the world, stretching over 2,300 km along the coast of Australia. It is the largest living structure on Earth, visible from space.',
+    detail:'📚 Learning Content: In Grade 7 Marine Geography, you will study coral reef ecosystems, marine biodiversity, the effects of global warming on coral bleaching, and the importance of marine conservation. The Reef contains over 1,500 species of fish and 400 types of coral.'
+  },
+  {
+    name:'Sahara Desert', lat:23.4162, lon:25.6628, icon:'🏜️',
+    grade:'Grade 7 · Climate Geography',
+    desc:'The Sahara Desert is the largest hot desert in the world, covering about 9.4 million square kilometers across North Africa. It is one of the driest places on Earth.',
+    detail:'📚 Learning Content: In Grade 7 Climate Geography, you will study desert climate formation, adaptation and survival in deserts, the causes and prevention of desertification, and the Sahara\'s impact on global climate systems.'
+  },
+  {
+    name:'Andes Mountains', lat:-32.6532, lon:-70.0109, icon:'⛰️',
+    grade:'Grade 7 · Physical Geography',
+    desc:'The Andes Mountains are the longest continental mountain range in the world, stretching about 8,900 km along the western coast of South America through 7 countries.',
+    detail:'📚 Learning Content: In Grade 7 Physical Geography, you will study the formation of the Andes through plate tectonics, vertical climate zones, how the Inca civilization adapted to the mountain environment, and the region\'s mineral resources.'
+  },
+  {
+    name:'Yangtze River', lat:31.3937, lon:118.3073, icon:'🌊',
+    grade:'Grade 6 · Chinese Geography',
+    desc:'The Yangtze River is the longest river in China and the longest in Asia, stretching about 6,300 km. It originates from the Tibetan Plateau and flows through 11 provinces into the East China Sea.',
+    detail:'📚 Learning Content: In Grade 6 Chinese Geography, you will study the geographical features of the Yangtze River Basin, the development of the Yangtze Economic Belt, the significance of the Three Gorges Dam, and the river\'s influence on Chinese culture.'
+  },
+  {
+    name:'The Alps', lat:46.8182, lon:8.2275, icon:'🗻',
+    grade:'Grade 7 · European Geography',
+    desc:'The Alps are the highest and most extensive mountain range in Europe, spanning 8 countries including France, Switzerland, Italy, and Germany. They form a major natural boundary and tourist destination.',
+    detail:'📚 Learning Content: In Grade 7 European Geography, you will study the formation of Alpine glacier landforms, the impact of tourism on mountain economies, the sources of major European rivers, and alpine ecosystems.'
+  },
+  {
+    name:'Pacific Ocean', lat:0, lon:-160, icon:'🌊',
+    grade:'Grade 6 · World Geography',
+    desc:'The Pacific Ocean is the largest ocean on Earth, covering about 165 million square kilometers — more than all of Earth\'s land combined. It covers about one-third of the planet\'s surface.',
+    detail:'📚 Learning Content: In Grade 6 World Geography, you will study the Pacific\'s location and extent, the Ring of Fire, how ocean current systems affect global climate, and the cultural diversity of Pacific Islands.'
+  },
+  {
+    name:'Gobi Desert', lat:42.5, lon:105, icon:'🏜️',
+    grade:'Grade 7 · Asian Geography',
+    desc:'The Gobi Desert is the largest desert in Asia, spanning parts of northern China and southern Mongolia. It includes not only sand dunes but also vast gravel plains and dry grasslands.',
+    detail:'📚 Learning Content: In Grade 7 Asian Geography, you will study the Gobi\'s climate characteristics, oasis economies in desert regions, the relationship between the Silk Road and the Gobi, and the challenges of desertification control.'
+  },
+  {
+    name:'Mediterranean Sea', lat:35, lon:18, icon:'🌅',
+    grade:'Grade 6 · World Geography',
+    desc:'The Mediterranean Sea is the largest inland sea in the world, located between Europe, Asia, and Africa. It has been a vital route for trade and cultural exchange since ancient times, known as the "Melting Pot of Civilizations."',
+    detail:'📚 Learning Content: In Grade 6 World Geography, you will study the Mediterranean climate (hot dry summers, mild wet winters), the ancient civilizations along its coasts, and the sea\'s importance in global trade throughout history.'
+  },
+  {
+    name:'African Savanna', lat:-1.5, lon:36, icon:'🦁',
+    grade:'Grade 7 · Ecological Geography',
+    desc:'The African Savanna (Serengeti-Mara ecosystem) is the most famous tropical grassland ecosystem in the world, renowned for its spectacular annual wildlife migration.',
+    detail:'📚 Learning Content: In Grade 7 Ecological Geography, you will study tropical grassland climate and ecosystems, food chains and biodiversity, the geographical causes of animal migration, and wildlife conservation and ecotourism.'
+  }
+];
+
+// ============================================================
+// 3D GLOBE IMPLEMENTATION
+// ============================================================
+let globeInitialized = false;
+let scene, camera, renderer, controls, earth, raycaster, mouse;
+let globeLocations = [];
+let animationId = null;
+let isZooming = false;
+
+async function initGlobe(){
+  if(globeInitialized) return;
+  globeInitialized = true;
+
+  const THREE = await import('three');
+  const { OrbitControls } = await import('three/addons/controls/OrbitControls.js');
+
+  const container = document.getElementById('globe-container');
+  const w = container.clientWidth || window.innerWidth;
+  const h = container.clientHeight || window.innerHeight;
+
+  scene = new THREE.Scene();
+
+  camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 1000);
+  camera.position.set(0, 0.5, 3.2);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  container.appendChild(renderer.domElement);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.minDistance = 1.5;
+  controls.maxDistance = 6;
+  controls.rotateSpeed = 0.5;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.8;
+
+  // Scene background - deep space blue
+  scene.background = new THREE.Color(0x0a0a1a);
+
+  // Canvas-generated Earth texture (always works, no CDN needed)
+  function generateEarthTexture(){
+    const c = document.createElement('canvas');
+    c.width = 2048; c.height = 1024;
+    const ctx = c.getContext('2d');
+
+    // Deep ocean gradient
+    const grad = ctx.createLinearGradient(0, 0, 0, 1024);
+    grad.addColorStop(0, '#1a3d6b');
+    grad.addColorStop(0.15, '#1565C0');
+    grad.addColorStop(0.3, '#1a73e8');
+    grad.addColorStop(0.5, '#1a6db5');
+    grad.addColorStop(0.7, '#1a73e8');
+    grad.addColorStop(0.85, '#1565C0');
+    grad.addColorStop(1, '#1a3d6b');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 2048, 1024);
+
+    // Simplified continent shapes [x, y, w, h, rotation*1000]
+    // Using equirectangular projection mapping
+    const continents = [
+      // North America
+      {color:'#2E7D32', points:[[220,110],[180,200],[200,320],[240,350],[300,340],[360,300],[380,260],[370,200],[350,150],[300,110]]},
+      {color:'#388E3C', points:[[250,350],[240,400],[280,440],[330,420],[350,370],[310,350]]},
+      // South America
+      {color:'#2E7D32', points:[[360,480],[340,560],[350,660],[380,740],[420,760],[450,700],[460,600],[440,520],[410,480]]},
+      // Europe & British Isles
+      {color:'#4CAF50', points:[[740,180],[760,150],[800,140],[830,155],[850,180],[860,220],[840,250],[810,260],[780,250],[760,220]]},
+      // Africa
+      {color:'#6D4C41', points:[[780,300],[760,380],[770,450],[800,520],[840,560],[870,540],[890,480],[900,400],[890,340],[870,300],[830,280],[800,280]]},
+      // Madagascar
+      {color:'#6D4C41', points:[[930,500],[930,540],[950,560],[960,540],[960,500]]},
+      // Asia (massive)
+      {color:'#388E3C', points:[[900,120],[920,90],[960,80],[1020,90],[1080,100],[1120,120],[1160,150],[1180,200],[1170,260],[1130,300],[1080,330],[1020,350],[960,340],[920,310],[890,270],[880,220],[880,170]]},
+      // India
+      {color:'#4CAF50', points:[[1060,330],[1060,400],[1080,450],[1120,440],[1130,380],[1110,340]]},
+      // Southeast Asia
+      {color:'#388E3C', points:[[1140,360],[1140,410],[1160,440],[1190,440],[1210,400],[1190,360]]},
+      // Japan
+      {color:'#4CAF50', points:[[1230,180],[1240,220],[1250,260],[1255,240],[1245,180]]},
+      // Indonesia
+      {color:'#388E3C', points:[[1180,460],[1210,480],[1250,480],[1280,470],[1280,450],[1250,440],[1210,440]]},
+      // Australia
+      {color:'#BF8F00', points:[[1320,600],[1300,660],[1320,720],[1380,740],[1440,720],[1460,660],[1440,600],[1380,580]]},
+      // Greenland
+      {color:'#43A047', points:[[400,40],[410,80],[440,100],[470,90],[480,60],[460,30],[430,20]]}
+    ];
+
+    continents.forEach(cont => {
+      ctx.beginPath();
+      const pts = cont.points;
+      ctx.moveTo(pts[0][0], pts[0][1]);
+      for(let i=1; i<pts.length; i++){
+        const cpX = (pts[i][0] + pts[(i+1)%pts.length][0]) / 2;
+        const cpY = (pts[i][1] + pts[(i+1)%pts.length][1]) / 2;
+        ctx.quadraticCurveTo(pts[i][0], pts[i][1], cpX, cpY);
+      }
+      ctx.closePath();
+      ctx.fillStyle = cont.color;
+      ctx.fill();
+      // Slight edge highlight
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+
+    // Add some subtle land detail
+    for(let i=0; i<200; i++){
+      const x = Math.random() * 2048;
+      const y = Math.random() * 1024;
+      const r = Math.random() * 8 + 2;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(46,125,50,${Math.random() * 0.1})`;
+      ctx.fill();
+    }
+
+    // Ice caps
+    ctx.fillStyle = 'rgba(220,240,255,0.25)';
+    ctx.fillRect(0, 0, 2048, 25);
+    ctx.fillRect(0, 1000, 2048, 24);
+
+    return c;
+  }
+
+  // Try loading real texture, fall back to canvas
+  const geo = new THREE.SphereGeometry(1, 72, 72);
+  const texLoader = new THREE.TextureLoader();
+
+  // Start with canvas texture so Earth is visible immediately
+  const canvasTex = new THREE.CanvasTexture(generateEarthTexture());
+  const mat = new THREE.MeshPhongMaterial({
+    map: canvasTex,
+    specular: new THREE.Color(0x222244),
+    shininess: 8,
+    emissive: new THREE.Color(0x0a1628),
+    emissiveIntensity: 0.08
+  });
+  earth = new THREE.Mesh(geo, mat);
+  scene.add(earth);
+
+  // Try to load hi-res texture as upgrade
+  const hiResUrls = [
+    'https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg',
+    'https://cdn.jsdelivr.net/npm/three-globe@0.0.1/example/img/earth-blue-marble.jpg',
+    'https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg'
+  ];
+  let urlIdx = 0;
+  function tryLoadTexture(){
+    if(urlIdx >= hiResUrls.length) return;
+    texLoader.load(hiResUrls[urlIdx],
+      (tex) => { if(earth) earth.material.map = tex; earth.material.needsUpdate = true; },
+      undefined,
+      () => { urlIdx++; tryLoadTexture(); }
+    );
+  }
+  tryLoadTexture();
+
+  // Atmosphere glow
+  const glowGeo = new THREE.SphereGeometry(1.03, 48, 48);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x4FC3F7,
+    transparent: true,
+    opacity: 0.10,
+    side: THREE.BackSide
+  });
+  const glow = new THREE.Mesh(glowGeo, glowMat);
+  scene.add(glow);
+
+  // Cloud layer
+  const cloudGeo = new THREE.SphereGeometry(1.008, 48, 48);
+  const cloudMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.06,
+    depthWrite: false
+  });
+  const clouds = new THREE.Mesh(cloudGeo, cloudMat);
+  scene.add(clouds);
+
+  // Location markers
+  const markerMat = new THREE.MeshBasicMaterial({ color: 0xFF6B6B, transparent: true, opacity: 0.9 });
+  const pulseMat = new THREE.MeshBasicMaterial({ color: 0xFF6B6B, transparent: true, opacity: 0.25 });
+
+  geoLocations.forEach((loc, i) => {
+    const phi = (90 - loc.lat) * Math.PI / 180;
+    const theta = (loc.lon + 180) * Math.PI / 180;
+    const r = 1.005;
+    const x = -r * Math.sin(phi) * Math.cos(theta);
+    const y = r * Math.cos(phi);
+    const z = r * Math.sin(phi) * Math.sin(theta);
+
+    // Pin
+    const pin = new THREE.Mesh(new THREE.CircleGeometry(0.03, 12), markerMat);
+    pin.position.set(x, y, z);
+    pin.lookAt(0, 0, 0);
+    scene.add(pin);
+
+    // Glow ring
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.035, 0.055, 16), pulseMat);
+    ring.position.set(x, y, z);
+    ring.lookAt(0, 0, 0);
+    scene.add(ring);
+
+    globeLocations.push({ mesh: pin, data: loc });
+  });
+
+  // Stars
+  const starsGeo = new THREE.BufferGeometry();
+  const starCount = 4000;
+  const starPos = new Float32Array(starCount * 3);
+  const starColors = new Float32Array(starCount * 3);
+  for(let i=0; i<starCount; i++){
+    const theta2 = Math.random() * Math.PI * 2;
+    const phi2 = Math.acos(2 * Math.random() - 1);
+    const r2 = 50 + Math.random() * 150;
+    starPos[i*3] = r2 * Math.sin(phi2) * Math.cos(theta2);
+    starPos[i*3+1] = r2 * Math.cos(phi2);
+    starPos[i*3+2] = r2 * Math.sin(phi2) * Math.sin(theta2);
+    const c = 0.6 + Math.random() * 0.4;
+    starColors[i*3] = c; starColors[i*3+1] = c; starColors[i*3+2] = c + Math.random() * 0.1;
+  }
+  starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  starsGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+  const starMat = new THREE.PointsMaterial({
+    size: 0.15, vertexColors: true, transparent: true, opacity: 0.8,
+    sizeAttenuation: true
+  });
+  const stars = new THREE.Points(starsGeo, starMat);
+  scene.add(stars);
+
+  // Lights - bright and even
+  const ambient = new THREE.AmbientLight(0x8888cc, 0.7);
+  scene.add(ambient);
+  const sunLight = new THREE.DirectionalLight(0xffeedd, 2.0);
+  sunLight.position.set(5, 8, 10);
+  scene.add(sunLight);
+  const fillLight = new THREE.DirectionalLight(0x4488ff, 0.6);
+  fillLight.position.set(-3, -4, -5);
+  scene.add(fillLight);
+  const rimLight = new THREE.DirectionalLight(0x88ccff, 0.4);
+  rimLight.position.set(-5, 3, -8);
+  scene.add(rimLight);
+
+  // Raycaster
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  renderer.domElement.addEventListener('click', onGlobeClick);
+  window.addEventListener('resize', onGlobeResize);
+
+  document.getElementById('geoLoader').classList.add('hidden');
+
+  function animate(){
+    animationId = requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+function onGlobeClick(event){
+  const container = document.getElementById('globe-container');
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(earth, true);
+
+  if(intersects.length > 0){
+    const hit = intersects[0];
+    const p = hit.point.clone().normalize();
+    const lat = 90 - Math.acos(p.y) * 180 / Math.PI;
+    const lon = (Math.atan2(-p.z, p.x) * 180 / Math.PI) - 0;
+
+    let minDist = Infinity;
+    let nearest = null;
+    geoLocations.forEach((loc, i) => {
+      const d = Math.sqrt(Math.pow(lat - loc.lat, 2) + Math.pow(lon - loc.lon, 2));
+      if(d < minDist){ minDist = d; nearest = i; }
+    });
+
+    if(nearest !== null && minDist < 25){
+      showGeoInfo(nearest);
+      zoomToLocation(nearest);
+    }
+  }
+}
+
+let zoomAnimId = null;
+
+function zoomToLocation(idx){
+  if(!earth || !controls) return;
+  if(zoomAnimId){ cancelAnimationFrame(zoomAnimId); zoomAnimId = null; }
+  isZooming = true;
+  controls.autoRotate = false;
+
+  const loc = geoLocations[idx];
+  const phi = (90 - loc.lat) * Math.PI / 180;
+  const theta = (loc.lon + 180) * Math.PI / 180;
+  const target = new THREE.Vector3(
+    -Math.sin(phi) * Math.cos(theta),
+    Math.cos(phi),
+    Math.sin(phi) * Math.sin(theta)
+  ).multiplyScalar(1.8);
+
+  const startPos = camera.position.clone();
+  const duration = 1000;
+  const startTime = Date.now();
+
+  function animZoom(){
+    const elapsed = Date.now() - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+
+    camera.position.lerpVectors(startPos, target, ease);
+    camera.lookAt(0, 0, 0);
+    controls.update();
+
+    if(t < 1){
+      zoomAnimId = requestAnimationFrame(animZoom);
+    } else {
+      isZooming = false;
+      zoomAnimId = null;
+    }
+  }
+  zoomAnimId = requestAnimationFrame(animZoom);
+}
+
+function showGeoInfo(idx){
+  const loc = geoLocations[idx];
+  document.getElementById('panelIcon').textContent = loc.icon;
+  document.getElementById('panelTitle').textContent = loc.name;
+  document.getElementById('panelGrade').textContent = loc.grade;
+  document.getElementById('panelDesc').textContent = loc.desc;
+  document.getElementById('panelDetail').innerHTML = loc.detail;
+  const c = '#4FC3F7';
+  document.getElementById('geoIllus').innerHTML =
+    `<svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg" style="background:linear-gradient(135deg,${c}22,${c}44,${c}22);border-radius:12px;width:100%;height:auto;display:block">
+      <defs><linearGradient id="gg" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" style="stop-color:${c};stop-opacity:0.2"/>
+        <stop offset="100%" style="stop-color:${c};stop-opacity:0"/>
+      </linearGradient></defs>
+      <circle cx="60" cy="40" r="70" fill="${c}11"/>
+      <circle cx="360" cy="130" r="60" fill="${c}11"/>
+      <path d="M0 130 Q80 100 200 115 T400 100 L400 160 L0 160 Z" fill="url(#gg)"/>
+      <text x="200" y="70" text-anchor="middle" font-size="48" dominant-baseline="central">${loc.icon}</text>
+      <text x="200" y="115" text-anchor="middle" font-size="12" fill="${c}cc" font-weight="600" font-family="'Segoe UI','Microsoft YaHei',sans-serif">${loc.name} · ${loc.grade}</text>
+    </svg>`;
+  document.getElementById('geo-info-panel').classList.add('open');
+}
+
+function closeGeoPanel(){
+  document.getElementById('geo-info-panel').classList.remove('open');
+  if(controls){
+    controls.autoRotate = true;
+  }
+}
+
+function onGlobeResize(){
+  if(!renderer) return;
+  const container = document.getElementById('globe-container');
+  const w = container.clientWidth || window.innerWidth;
+  const h = container.clientHeight || window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+}
+
+// ============================================================
+// HISTORY DATA
+// ============================================================
+const historyData = [
+  {
+    era:'Prehistoric Era', period:'c. 10,000 BCE — 3,000 BCE', icon:'🦴',
+    color:'#8D6E63',
+    events:[
+      {
+        year:'c. 10,000 BCE', title:'The Agricultural Revolution', icon:'🌾',
+        brief:'Humans transition from hunting and gathering to settled farming, the dawn of civilization',
+        desc:'The Agricultural Revolution was one of the most significant turning points in human history. Around 10,000 BCE, people in the Fertile Crescent (modern-day Middle East) began domesticating plants and animals. This shift from a nomadic hunter-gatherer lifestyle to settled farming led to permanent villages and towns, laying the foundation for civilization. The Agricultural Revolution caused a massive population increase, the emergence of social divisions, and ultimately gave rise to the first cities and civilizations.',
+        vocab:[
+          {word:'Agriculture', meaning:'The practice of cultivating crops and raising animals for food'},
+          {word:'Domestication', meaning:'The process of adapting wild plants and animals for human use'},
+          {word:'Sedentary', meaning:'Settled in one place rather than nomadic'},
+          {word:'Neolithic Revolution', meaning:'The academic name for the Agricultural Revolution'}
+        ],
+        illus:'🌾 Farming and Settlement',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/G%C3%B6bekli_Tepe%2C_Urfa.jpg/400px-G%C3%B6bekli_Tepe%2C_Urfa.jpg'
+      },
+      {
+        year:'c. 3,500 BCE', title:'Sumerian Civilization', icon:'🏛️',
+        brief:'The earliest urban civilization emerges in Mesopotamia between the Tigris and Euphrates rivers',
+        desc:'Sumerian civilization emerged in Mesopotamia (the land between the Tigris and Euphrates rivers) and is considered one of the earliest civilizations in the world. The Sumerians invented cuneiform script — one of the earliest writing systems — established city-states, and developed mathematics, astronomy, and legal systems. They built magnificent ziggurats (step temples) and invented the wheel, sailboats, and other important technologies.',
+        vocab:[
+          {word:'Cuneiform', meaning:'The writing system invented by the Sumerians'},
+          {word:'City-state', meaning:'An independent political entity centered on a city'},
+          {word:'Mesopotamia', meaning:'The land between two rivers (Tigris & Euphrates)'},
+          {word:'Ziggurat', meaning:'A step-like temple tower built by the Sumerians'}
+        ],
+        illus:'📝 Cuneiform Writing and the Ziggurat',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Cuneiform_writing.jpg/400px-Cuneiform_writing.jpg'
+      }
+    ]
+  },
+  {
+    era:'Ancient Civilizations', period:'c. 3,100 BCE — 500 CE', icon:'🏺',
+    color:'#E65100',
+    events:[
+      {
+        year:'c. 3,100 BCE', title:'Ancient Egypt', icon:'👑',
+        brief:'The brilliant civilization of Ancient Egypt emerges along the Nile River under the rule of the Pharaohs',
+        desc:'Ancient Egypt is one of the most famous ancient civilizations in the world, originating along the Nile River. The Pharaoh ruled as a divine king, and the Egyptians built magnificent pyramids and temples. They invented hieroglyphic writing and achieved remarkable advances in mathematics, medicine, and astronomy. The annual flooding of the Nile provided fertile soil for agriculture, sustaining Egyptian civilization for over 3,000 years.',
+        vocab:[
+          {word:'Pharaoh', meaning:'The king and divine ruler of Ancient Egypt'},
+          {word:'Hieroglyphics', meaning:'The writing system of Ancient Egypt using pictorial symbols'},
+          {word:'Pyramid', meaning:'Giant tombs built for Egyptian pharaohs'},
+          {word:'Nile', meaning:'The river that sustained Ancient Egyptian civilization'}
+        ],
+        illus:'🏛️ Pyramids and the Great Sphinx',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Kheops-Pyramid.jpg/400px-Kheops-Pyramid.jpg'
+      },
+      {
+        year:'c. 2,000 BCE', title:'Babylonian Empire', icon:'⚖️',
+        brief:'King Hammurabi creates one of the world\'s earliest legal codes',
+        desc:'The Babylonian Empire was an important civilization in Mesopotamia. King Hammurabi created the Code of Hammurabi, one of the earliest and most complete written legal codes in the world. The code was inscribed on a black stone pillar and is famous for the principle of "an eye for an eye." Babylon was renowned for its grand architecture and the legendary Hanging Gardens (one of the Seven Wonders of the Ancient World).',
+        vocab:[
+          {word:'Code of Law', meaning:'A written collection of laws'},
+          {word:'Hammurabi', meaning:'The sixth king of Babylon who created the famous legal code'},
+          {word:'Hanging Gardens', meaning:'Legendary gardens in Babylon, a wonder of the ancient world'},
+          {word:'Babylon', meaning:'An ancient city in Mesopotamia'}
+        ],
+        illus:'📜 The Code of Hammurabi',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Code_de_Hammurabi.jpg/400px-Code_de_Hammurabi.jpg'
+      },
+      {
+        year:'c. 1,500 BCE', title:'Shang Dynasty China', icon:'🐉',
+        brief:'China\'s first historically confirmed dynasty reaches the peak of Bronze Age civilization',
+        desc:'The Shang Dynasty (c. 1,600-1,046 BCE) is the first Chinese dynasty with contemporary written records. The Shang created an advanced bronze civilization, casting large numbers of exquisite bronze vessels. They used oracle bone script (oracle bone script) for divination, which is the earliest known form of Chinese writing. The Shang had a well-organized state structure, social hierarchy, and religious beliefs.',
+        vocab:[
+          {word:'Oracle Bone', meaning:'Ancient Chinese characters carved on turtle shells and animal bones'},
+          {word:'Bronze', meaning:'An alloy of copper and tin, central to Shang craftsmanship'},
+          {word:'Dynasty', meaning:'A succession of rulers from the same family'},
+          {word:'Ritual Vessel', meaning:'Bronze containers used in ceremonial offerings'}
+        ],
+        illus:'🐢 Oracle Bones and Bronze Vessels',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Shang_dynasty_bone_script.jpg/400px-Shang_dynasty_bone_script.jpg'
+      },
+      {
+        year:'c. 500 BCE', title:'Ancient Greece', icon:'🏛️',
+        brief:'The birthplace of democracy, philosophy, art, and science — the Golden Age of Greece',
+        desc:'Ancient Greek civilization laid the foundation for Western culture. Athens invented democracy, which became the origin of modern democratic politics. Greece achieved groundbreaking advances in philosophy (Socrates, Plato, Aristotle), art (sculpture, architecture), science (Euclid, Archimedes), and literature (Homer\'s epics). Greek city-states spread across the Mediterranean, spreading Greek culture through colonization and trade.',
+        vocab:[
+          {word:'Democracy', meaning:'A system of government where citizens participate in decision-making'},
+          {word:'Philosophy', meaning:'The pursuit of knowledge and wisdom'},
+          {word:'City-state (Polis)', meaning:'An independent city that governs itself'},
+          {word:'Olympics', meaning:'Athletic competitions that originated in Ancient Greece'}
+        ],
+        illus:'🏛️ The Parthenon and Greek Philosophy',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/The_Parthenon_in_Athens.jpg/400px-The_Parthenon_in_Athens.jpg'
+      },
+      {
+        year:'221 BCE', title:'Qin Unification of China', icon:'⚔️',
+        brief:'Emperor Qin Shi Huang unifies the warring states and establishes the first centralized empire in China',
+        desc:'In 221 BCE, Qin Shi Huang conquered the six rival states, achieving the first true unification of China. He established the first centralized imperial dynasty — the Qin Dynasty — standardizing writing, currency, weights and measures. He built the Great Wall to defend against northern nomads and left the world-famous Terracotta Warriors. Although the Qin Dynasty was short-lived, it laid the foundation for over 2,000 years of imperial rule in China.',
+        vocab:[
+          {word:'Emperor', meaning:'The supreme ruler of an empire'},
+          {word:'Centralization', meaning:'Concentration of power in a central government'},
+          {word:'Great Wall', meaning:'A series of fortifications built to protect China\'s northern border'},
+          {word:'Terracotta Warriors', meaning:'Life-sized clay soldiers buried with Emperor Qin Shi Huang'}
+        ],
+        illus:'🏯 The Terracotta Warriors and the Great Wall',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3b/Terracotta_Army_-_Pit_1.jpg/400px-Terracotta_Army_-_Pit_1.jpg'
+      },
+      {
+        year:'27 BCE', title:'Roman Empire', icon:'🦅',
+        brief:'Rome transitions from a republic to an empire, becoming the dominant power of the Mediterranean world',
+        desc:'The Roman Empire was one of the most powerful empires of the ancient world. In 27 BCE, Octavian became the first Roman emperor (Augustus), marking the transition from the Roman Republic to the Empire. At its height, the Empire controlled the entire Mediterranean region, Western Europe, North Africa, and parts of the Middle East. Rome\'s advanced engineering (aqueducts, roads), legal system (Roman Law), military organization, and Latin culture had a profound influence on later civilizations.',
+        vocab:[
+          {word:'Empire', meaning:'A large state ruled by an emperor'},
+          {word:'Roman Law', meaning:'The legal system developed by the Romans'},
+          {word:'Aqueduct', meaning:'A water supply system built by the Romans'},
+          {word:'Colosseum', meaning:'A large amphitheater in Rome used for public entertainment'}
+        ],
+        illus:'🏟️ The Colosseum and Roman Aqueducts',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseum_rome.jpg/400px-Colosseum_rome.jpg'
+      },
+      {
+        year:'220 CE', title:'Fall of the Han Dynasty', icon:'🔥',
+        brief:'One of China\'s most powerful dynasties ends, ushering in the Three Kingdoms period',
+        desc:'The Han Dynasty (202 BCE - 220 CE) was one of the most important dynasties in Chinese history, lasting over 400 years. During the Han, Confucianism became the official state philosophy, the Silk Road was opened, and paper-making was invented. In 220 CE, Cao Pi forced Emperor Xian to abdicate, ending the Han Dynasty and beginning the Three Kingdoms period of Wei, Shu, and Wu.',
+        vocab:[
+          {word:'Silk Road', meaning:'The trade route connecting China with the West'},
+          {word:'Confucianism', meaning:'The philosophical system of Confucius emphasizing morality and social harmony'},
+          {word:'Three Kingdoms', meaning:'The period of division between Wei, Shu, and Wu'},
+          {word:'Paper-making', meaning:'One of the Four Great Inventions of ancient China'}
+        ],
+        illus:'📜 The Silk Road and the Three Kingdoms',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Han_Dynasty_map_%282CE%29.jpg/400px-Han_Dynasty_map_%282CE%29.jpg'
+      }
+    ]
+  },
+  {
+    era:'Middle Ages', period:'500 CE — 1,500 CE', icon:'⚔️',
+    color:'#6A1B9A',
+    events:[
+      {
+        year:'476 CE', title:'Fall of the Western Roman Empire', icon:'💔',
+        brief:'Germanic tribes conquer Rome, marking the beginning of the Middle Ages in Europe',
+        desc:'In 476 CE, the Germanic chieftain Odoacer deposed the last Western Roman emperor, Romulus Augustulus, ending the Western Roman Empire. This event marks the end of the ancient world and the beginning of the Middle Ages. Europe then entered a thousand-year period of feudalism, with political power decentralized and the Christian Church becoming a major unifying force. The Eastern Roman Empire (Byzantine Empire) continued for nearly another 1,000 years.',
+        vocab:[
+          {word:'Fall of Rome', meaning:'The end of the Western Roman Empire in 476 CE'},
+          {word:'Middle Ages', meaning:'The period in European history from c. 500-1,500 CE'},
+          {word:'Feudalism', meaning:'A social system based on land ownership and loyalty'},
+          {word:'Byzantine Empire', meaning:'The continuation of the Eastern Roman Empire'}
+        ],
+        illus:'🏛️ The Decline of the Roman Empire',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Roman_Forum_from_Palatine.jpg/400px-Roman_Forum_from_Palatine.jpg'
+      },
+      {
+        year:'618 CE', title:'Tang Dynasty Established', icon:'🌸',
+        brief:'One of China\'s most glorious dynasties, a golden age of culture and economy',
+        desc:'The Tang Dynasty (618-907 CE) was one of China\'s most powerful and prosperous dynasties, often called the "Golden Age of China." Its capital Chang\'an (modern Xi\'an) was one of the world\'s largest cities, with a population exceeding one million. The Tang period saw vast territorial expansion, economic prosperity, and brilliant cultural achievements. Chinese poetry reached its classical peak with poets like Li Bai, Du Fu, and Bai Juyi. The Silk Road trade flourished during this time.',
+        vocab:[
+          {word:'Tang Dynasty', meaning:'One of China\'s greatest dynasties (618-907 CE)'},
+          {word:'Chang\'an', meaning:'The Tang capital, modern-day Xi\'an'},
+          {word:'Silk Road Trade', meaning:'The trade network connecting China to the West during Tang times'},
+          {word:'Golden Age', meaning:'A period of great prosperity and cultural achievement'}
+        ],
+        illus:'🏯 Tang Dynasty Chang\'an and Tang Poetry',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Tang_Dynasty_painting.jpg/400px-Tang_Dynasty_painting.jpg'
+      },
+      {
+        year:'1066 CE', title:'The Norman Conquest', icon:'⚔️',
+        brief:'Duke William of Normandy conquers England, fundamentally changing English history',
+        desc:'In 1066, William, Duke of Normandy, led his army across the English Channel and defeated King Harold of England at the Battle of Hastings. William was crowned King of England in what became known as the Norman Conquest. This event profoundly changed England\'s language, culture, politics, and legal system. French vocabulary entered the English language in large numbers, and feudalism was fully established in England.',
+        vocab:[
+          {word:'Norman Conquest', meaning:'The Norman invasion and conquest of England in 1066'},
+          {word:'Battle of Hastings', meaning:'The decisive battle of the Norman Conquest'},
+          {word:'Feudalism', meaning:'The land-based social hierarchy system'},
+          {word:'Domesday Book', meaning:'The survey of land and property in England'}
+        ],
+        illus:'🏰 Norman Castles and Knights',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Bayeux_Tapestry_Norman_invasion.jpg/400px-Bayeux_Tapestry_Norman_invasion.jpg'
+      },
+      {
+        year:'1206 CE', title:'Mongol Empire Founded', icon:'🐎',
+        brief:'Genghis Khan unites the Mongol tribes and establishes the largest empire in history',
+        desc:'In 1206, Temüjin united all the Mongol tribes on the Mongolian Plateau and was proclaimed "Genghis Khan" (meaning "Universal Ruler"), establishing the Mongol Empire. At its peak, the Mongol Empire stretched across Eurasia from the Pacific Ocean to Eastern Europe, covering over 33 million square kilometers — the largest contiguous land empire in history. The Mongol Empire facilitated exchange between East and West while also bringing large-scale warfare.',
+        vocab:[
+          {word:'Genghis Khan', meaning:'The founder of the Mongol Empire'},
+          {word:'Mongol Empire', meaning:'The largest contiguous land empire in history'},
+          {word:'Pax Mongolica', meaning:'The period of peace across Eurasia under Mongol rule'},
+          {word:'Nomadic', meaning:'A lifestyle of moving from place to place'}
+        ],
+        illus:'🐎 Mongol Horsemen and the Steppe',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Mongol_horseman.jpg/400px-Mongol_horseman.jpg'
+      },
+      {
+        year:'1271 CE', title:'Yuan Dynasty Established', icon:'🇨🇳',
+        brief:'Kublai Khan founds the Yuan Dynasty, the first foreign dynasty to rule all of China',
+        desc:'In 1271, Kublai Khan (grandson of Genghis Khan) established the Yuan Dynasty with its capital at Dadu (present-day Beijing). In 1279, the Yuan conquered the Southern Song, achieving the first unification of China under a non-Han ethnic group (the Mongols). During the Yuan period, international exchange flourished. The Venetian merchant Marco Polo visited China and documented the prosperity of the Yuan Empire. The Yuan saw advances in science, culture, and trade.',
+        vocab:[
+          {word:'Kublai Khan', meaning:'The founder of the Yuan Dynasty, grandson of Genghis Khan'},
+          {word:'Yuan Dynasty', meaning:'The Mongol-led dynasty that ruled China'},
+          {word:'Marco Polo', meaning:'The Venetian traveler who visited Yuan China'},
+          {word:'Khanbaliq', meaning:'The Yuan capital, modern-day Beijing'}
+        ],
+        illus:'🏯 Yuan Dynasty Dadu and Marco Polo',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Yuan_Emperor_Hunt.jpg/400px-Yuan_Emperor_Hunt.jpg'
+      },
+      {
+        year:'1405-1433 CE', title:'Zheng He\'s Voyages', icon:'⛵',
+        brief:'Chinese admiral Zheng He leads seven epic voyages across the Indian Ocean to Africa',
+        desc:'Zheng He was a famous Chinese mariner, diplomat, and fleet admiral during the Ming Dynasty. Between 1405 and 1433, he commanded massive treasure ship fleets on seven voyages to the "Western Seas," visiting over 30 countries and regions across Southeast Asia, South Asia, the Middle East, and the east coast of Africa. Zheng He\'s treasure ships were the largest wooden sailing vessels ever built, far larger than those of Columbus and da Gama. His voyages demonstrated Ming China\'s power and promoted cultural exchange.',
+        vocab:[
+          {word:'Zheng He', meaning:'The great Ming Dynasty admiral and explorer'},
+          {word:'Treasure Ship', meaning:'The large vessels used in Zheng He\'s fleet'},
+          {word:'Voyage', meaning:'A long sea journey'},
+          {word:'Indian Ocean Trade', meaning:'The trade network across the Indian Ocean during Ming times'}
+        ],
+        illus:'⛵ Zheng He\'s Treasure Fleet',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Zhenghe.jpg/400px-Zhenghe.jpg'
+      },
+      {
+        year:'1453 CE', title:'Fall of Constantinople', icon:'🕌',
+        brief:'The Ottoman Empire captures Constantinople, marking the end of the Middle Ages',
+        desc:'In 1453, Ottoman Sultan Mehmed II conquered Constantinople (modern-day Istanbul), bringing an end to the Eastern Roman Empire (Byzantine Empire). This event is widely regarded as marking the end of the Middle Ages and the beginning of the early modern period. The fall of Constantinople prompted many Greek scholars to flee to Italy with classical texts, helping fuel the Renaissance. The Ottoman Empire renamed Constantinople to Istanbul and made it their capital.',
+        vocab:[
+          {word:'Constantinople', meaning:'The capital of the Eastern Roman Empire'},
+          {word:'Ottoman Empire', meaning:'The Turkish empire that succeeded the Byzantines'},
+          {word:'Fall of Constantinople', meaning:'The conquest of Constantinople in 1453'},
+          {word:'Renaissance', meaning:'The cultural and intellectual revival in Europe'}
+        ],
+        illus:'🕌 Hagia Sophia and the Fall of Constantinople',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Constantinople_panorama.jpg/400px-Constantinople_panorama.jpg'
+      }
+    ]
+  },
+  {
+    era:'Early Modern Era', period:'1,500 CE — 1,800 CE', icon:'🌏',
+    color:'#E65100',
+    events:[
+      {
+        year:'1492 CE', title:'Columbus Reaches the Americas', icon:'⛵',
+        brief:'Christopher Columbus crosses the Atlantic and accidentally discovers the New World',
+        desc:'In 1492, Italian explorer Christopher Columbus, sponsored by Queen Isabella of Spain, sailed west seeking a new route to Asia. Instead, he landed in the Bahamas, discovering the American continents. This "Age of Discovery" opened the era of European colonization of the Americas, fundamentally changing the global order. The "Columbian Exchange" between the Old and New Worlds dramatically transformed global ecology, culture, and population.',
+        vocab:[
+          {word:'Columbus', meaning:'The explorer who discovered the Americas for Europe'},
+          {word:'New World', meaning:'The European name for the Americas'},
+          {word:'Columbian Exchange', meaning:'The exchange of plants, animals, and cultures between hemispheres'},
+          {word:'Colonization', meaning:'The occupation and control of foreign lands'}
+        ],
+        illus:'⛵ Columbus\'s Ships and Navigation',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Columbus_landing_in_the_Bahamas.jpg/400px-Columbus_landing_in_the_Bahamas.jpg'
+      },
+      {
+        year:'1517 CE', title:'The Protestant Reformation', icon:'✝️',
+        brief:'Martin Luther challenges the authority of the Catholic Church, splitting Western Christianity',
+        desc:'In 1517, German theologian Martin Luther posted his "Ninety-five Theses" on the door of Wittenberg Cathedral, publicly criticizing the corruption of the Roman Catholic Church and the sale of indulgences. This event sparked the Protestant Reformation, leading to a major split in Western Christianity between Protestantism and Catholicism. The Reformation profoundly changed Europe\'s political landscape, cultural values, and religious structure.',
+        vocab:[
+          {word:'Reformation', meaning:'The 16th-century religious movement that split Western Christianity'},
+          {word:'Martin Luther', meaning:'The German monk who initiated the Reformation'},
+          {word:'Protestant', meaning:'A Christian denomination that broke away from the Catholic Church'},
+          {word:'Indulgence', meaning:'A pardon sold by the Church to reduce punishment for sins'}
+        ],
+        illus:'✝️ The Reformation and the Bible',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Martin_Luther_by_Cranach.jpg/400px-Martin_Luther_by_Cranach.jpg'
+      },
+      {
+        year:'1644 CE', title:'Qing Dynasty Established', icon:'🐲',
+        brief:'The Manchu conquer China and establish the last imperial dynasty',
+        desc:'In 1644, Manchu forces entered Beijing with the help of General Wu Sangui, defeating Li Zicheng\'s peasant army. The Shunzhi Emperor ascended the throne, marking the beginning of Qing rule over China. The Qing Dynasty was the last imperial dynasty in Chinese history, founded by the Manchu ethnic group. During its peak period (the Kang-Qian Golden Age), the Qing Empire had unprecedented territorial extent, population growth, and economic prosperity.',
+        vocab:[
+          {word:'Qing Dynasty', meaning:'The last imperial dynasty of China (1644-1912)'},
+          {word:'Manchu', meaning:'The ethnic group that founded the Qing Dynasty'},
+          {word:'Kang-Qian Golden Age', meaning:'The most prosperous period of the Qing Dynasty'},
+          {word:'Forbidden City', meaning:'The imperial palace complex in Beijing'}
+        ],
+        illus:'🏯 The Forbidden City and Qing Emperors',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Forbidden_City_main_entrance.jpg/400px-Forbidden_City_main_entrance.jpg'
+      },
+      {
+        year:'1776 CE', title:'American Independence', icon:'🗽',
+        brief:'The thirteen colonies declare independence, and the United States of America is born',
+        desc:'On July 4, 1776, the Continental Congress of the thirteen American colonies adopted the Declaration of Independence, drafted by Thomas Jefferson, formally declaring independence from British rule and giving birth to the United States of America. The American Revolutionary War (1775-1783) followed, with General George Washington leading the colonial forces to victory over the British. American independence was one of the first successful anti-colonial revolutions in modern history.',
+        vocab:[
+          {word:'Declaration of Independence', meaning:'The document declaring American independence from Britain'},
+          {word:'Revolution', meaning:'A fundamental political and social change'},
+          {word:'Democracy', meaning:'The system of government established in the United States'},
+          {word:'Constitution', meaning:'The fundamental law of the United States'}
+        ],
+        illus:'🗽 The Declaration of Independence and the American Flag',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Declaration_of_Independence_%281819%29.jpg/400px-Declaration_of_Independence_%281819%29.jpg'
+      },
+      {
+        year:'1789 CE', title:'French Revolution', icon:'🇫🇷',
+        brief:'The Bastille is stormed, and the French monarchy is overthrown',
+        desc:'On July 14, 1789, Parisians stormed the Bastille prison, marking the beginning of the French Revolution. The Revolution was a far-reaching social upheaval that overthrew the absolute monarchy of the Bourbon dynasty and proclaimed the ideals of "Liberty, Equality, Fraternity" (Liberté, Égalité, Fraternité). The Revolution produced the Declaration of the Rights of Man and of the Citizen, establishing the foundation for modern human rights concepts.',
+        vocab:[
+          {word:'French Revolution', meaning:'The social revolution of 1789 in France'},
+          {word:'Bastille', meaning:'The prison fortress symbolizing royal authority'},
+          {word:'Liberty, Equality, Fraternity', meaning:'The slogan of the French Revolution'},
+          {word:'Republic', meaning:'A form of government without a monarch'}
+        ],
+        illus:'🇫🇷 The French Revolution and Liberty Leading the People',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Liberty_Leading_the_People.jpg/400px-Liberty_Leading_the_People.jpg'
+      }
+    ]
+  },
+  {
+    era:'Modern Era', period:'1,800 CE — Present', icon:'🏭',
+    color:'#1565C0',
+    events:[
+      {
+        year:'1760-1840 CE', title:'The Industrial Revolution', icon:'🏭',
+        brief:'The invention of the steam engine ushers in the age of industry, transforming how humans produce goods',
+        desc:'The Industrial Revolution began in Britain in the mid-18th century, marked by the improvement and widespread use of the steam engine. This revolution shifted human labor from manual work to machine production, transforming textiles, iron and steel, and transportation sectors. The emergence of the factory system, the expansion of railway networks, and accelerating urbanization fundamentally changed human society. The Industrial Revolution also brought about changes in social class structures and environmental challenges.',
+        vocab:[
+          {word:'Industrial Revolution', meaning:'The shift from handmade to machine-based production'},
+          {word:'Steam Engine', meaning:'The key invention that powered the Industrial Revolution'},
+          {word:'Factory System', meaning:'The centralized large-scale production method'},
+          {word:'Urbanization', meaning:'The movement of population from rural to urban areas'}
+        ],
+        illus:'🏭 The Steam Engine and the Industrial Age',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Steam_engine_of_Watt.jpg/400px-Steam_engine_of_Watt.jpg'
+      },
+      {
+        year:'1840 CE', title:'The Opium War', icon:'⚓',
+        brief:'Britain launches war against China, marking the beginning of modern Chinese history',
+        desc:'In 1840, Britain used the destruction of opium at Humen as a pretext to launch the First Opium War (1840-1842). Due to the corruption and backwardness of the Qing Dynasty, China was defeated and forced to sign the first unequal treaty — the Treaty of Nanjing — ceding Hong Kong Island, opening five treaty ports, and paying 21 million silver dollars. The Opium War marked the beginning of modern Chinese history and China\'s descent into a semi-colonial, semi-feudal society.',
+        vocab:[
+          {word:'Opium War', meaning:'The 1840 war between Britain and China'},
+          {word:'Unequal Treaty', meaning:'A treaty imposed on China under duress'},
+          {word:'Treaty of Nanjing', meaning:'The first unequal treaty signed by China'},
+          {word:'Semi-colonial', meaning:'A nation partially losing its sovereignty'}
+        ],
+        illus:'⚓ The Opium War and the Treaty of Nanjing',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Opium_War_Victory.jpg/400px-Opium_War_Victory.jpg'
+      },
+      {
+        year:'1914-1918 CE', title:'World War I', icon:'🎖️',
+        brief:'The first global war in human history reshapes the world\'s political order',
+        desc:'World War I (1914-1918) was the first global-scale war in human history. The war was fought primarily between the Allied Powers (Britain, France, Russia, etc.) and the Central Powers (Germany, Austria-Hungary, the Ottoman Empire, etc.). The war caused approximately 16 million deaths and saw widespread use of new weapons such as machine guns, poison gas, and tanks. After WWI, the Austro-Hungarian and Ottoman empires collapsed, and Germany was humiliated in defeat, laying the groundwork for World War II.',
+        vocab:[
+          {word:'World War I', meaning:'The global war from 1914-1918'},
+          {word:'Alliance System', meaning:'The network of military alliances among European powers'},
+          {word:'Trench Warfare', meaning:'The type of warfare characterized by fighting from trenches'},
+          {word:'Treaty of Versailles', meaning:'The peace treaty that ended WWI'}
+        ],
+        illus:'🎖️ World War I Trenches and the Treaty of Versailles',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Trench_warfare_WWI.jpg/400px-Trench_warfare_WWI.jpg'
+      },
+      {
+        year:'1939-1945 CE', title:'World War II', icon:'✈️',
+        brief:'The largest war in human history that profoundly shaped the modern world',
+        desc:'World War II (1939-1945) was the largest and most devastating war in human history. The war was characterized by a global conflict between the Axis powers (Germany, Japan, Italy) and the Allied powers (USA, USSR, Britain, China, etc.). Approximately 70 million people died, including the systematic killing of civilians through events like the Nanjing Massacre and the Holocaust. In 1945, the United States dropped atomic bombs on Japan, ending the war. The United Nations was established afterward, and the Cold War era began.',
+        vocab:[
+          {word:'World War II', meaning:'The global war from 1939-1945'},
+          {word:'Holocaust', meaning:'The Nazi genocide of European Jews'},
+          {word:'Atomic Bomb', meaning:'The nuclear weapon used at the end of WWII'},
+          {word:'United Nations', meaning:'The international organization founded after WWII'}
+        ],
+        illus:'✈️ World War II and the United Nations',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Raising_the_Flag_on_Iwo_Jima.jpg/400px-Raising_the_Flag_on_Iwo_Jima.jpg'
+      },
+      {
+        year:'1949 CE', title:'Founding of the People\'s Republic of China', icon:'🇨🇳',
+        brief:'Mao Zedong proclaims the founding of the People\'s Republic of China at Tiananmen Square',
+        desc:'On October 1, 1949, Chairman Mao Zedong solemnly proclaimed the founding of the People\'s Republic of China at Tiananmen Square, marking the victory of the Chinese Revolution and the beginning of modern Chinese history. The Chinese people stood up and began their journey of socialist construction and modernization. From the initial recovery of a war-torn nation to the economic take-off after reform and opening up, China has undergone tremendous transformation.',
+        vocab:[
+          {word:'People\'s Republic of China', meaning:'The official name of China since 1949'},
+          {word:'Mao Zedong', meaning:'The founding leader of the People\'s Republic of China'},
+          {word:'Tiananmen', meaning:'The square in Beijing where the founding was proclaimed'},
+          {word:'Revolution', meaning:'A fundamental social and political transformation'}
+        ],
+        illus:'🇨🇳 Tiananmen Square and the Founding of New China',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Mao_Zedong_portrait.jpg/400px-Mao_Zedong_portrait.jpg'
+      },
+      {
+        year:'1991 CE', title:'Collapse of the Soviet Union', icon:'🔻',
+        brief:'The Soviet superpower dissolves, ending the Cold War and bipolar world order',
+        desc:'On December 25, 1991, Soviet President Mikhail Gorbachev resigned, and the Supreme Soviet declared the Soviet Union dissolved the next day. The Soviet Union, once a superpower rivaling the United States, broke apart into 15 independent nations. The collapse of the Soviet Union marked the end of the Cold War and the bipolar world order, ushering in a new multipolar global landscape. This event profoundly affected global politics, economics, and international relations.',
+        vocab:[
+          {word:'Soviet Union', meaning:'The Union of Soviet Socialist Republics (USSR)'},
+          {word:'Cold War', meaning:'The geopolitical tension between the US and USSR'},
+          {word:'Collapse', meaning:'The disintegration of a state or system'},
+          {word:'Post-Cold War', meaning:'The new global era after the end of the Cold War'}
+        ],
+        illus:'🔻 The Collapse of the Soviet Union',
+        img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Flag_of_the_Soviet_Union.svg/400px-Flag_of_the_Soviet_Union.svg.png'
+      }
+    ]
+  }
+];
+
+// ============================================================
+// HISTORY RENDER
+// ============================================================
+function renderHistory(){
+  const container = document.getElementById('historyContainer');
+  if(container.dataset.rendered) return;
+  container.dataset.rendered = 'true';
+
+  historyData.forEach((era, ei) => {
+    const section = document.createElement('div');
+    section.className = 'history-era';
+    if(ei > 0) section.classList.add('collapsed');
+
+    section.innerHTML = `
+      <div class="history-era-header" style="background:${era.color}18" onclick="toggleEra(this)">
+        <span class="era-icon">${era.icon}</span>
+        <div class="era-info">
+          <div class="era-name">${era.era}</div>
+          <div class="era-period">${era.period}</div>
+        </div>
+        <span class="era-toggle">▼</span>
+      </div>
+      <div class="era-events">
+        ${era.events.map((ev, vi) => `
+          <div class="history-event" onclick="showHistoryDetail(${ei},${vi})">
+            <div class="event-year">${ev.year}</div>
+            <div class="event-content">
+              <div class="event-title">${ev.title}</div>
+              <div class="event-brief">${ev.brief}</div>
+            </div>
+            <span class="event-emoji">${ev.icon}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(section);
+  });
+}
+
+function toggleEra(header){
+  const section = header.closest('.history-era');
+  section.classList.toggle('collapsed');
+}
+
+function showHistoryDetail(ei, vi){
+  const ev = historyData[ei].events[vi];
+  const era = historyData[ei];
+  document.getElementById('detIcon').textContent = ev.icon;
+  document.getElementById('detYear').textContent = ev.year;
+  document.getElementById('detTitle').textContent = ev.title;
+  document.getElementById('detDesc').textContent = ev.desc;
+
+  const vocabEl = document.getElementById('detVocab');
+  vocabEl.innerHTML = ev.vocab.map(v =>
+    `<span class="vocab-tag"><strong>${v.word}</strong> ${v.meaning}</span>`
+  ).join('');
+
+  function makeSVG(icon, title, color){
+    const c = color || '#4FC3F7';
+    return `<svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg" style="background:linear-gradient(135deg,${c}22,${c}44,${c}22)">
+      <defs>
+        <linearGradient id="g_${ei}_${vi}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${c};stop-opacity:0.15"/>
+          <stop offset="100%" style="stop-color:${c};stop-opacity:0.35"/>
+        </linearGradient>
+        <linearGradient id="g2_${ei}_${vi}" x1="0%" y1="100%" x2="0%" y2="0%">
+          <stop offset="0%" style="stop-color:${c};stop-opacity:0.2"/>
+          <stop offset="100%" style="stop-color:${c};stop-opacity:0"/>
+        </linearGradient>
+      </defs>
+      <rect width="400" height="220" fill="url(#g_${ei}_${vi})" rx="12"/>
+      <circle cx="80" cy="60" r="90" fill="${c}11"/>
+      <circle cx="340" cy="180" r="70" fill="${c}11"/>
+      <circle cx="200" cy="-20" r="60" fill="${c}08"/>
+      <path d="M0 180 Q100 140 200 160 T400 140 L400 220 L0 220 Z" fill="url(#g2_${ei}_${vi})"/>
+      <text x="200" y="100" text-anchor="middle" font-size="56" dominant-baseline="central">${icon}</text>
+      <text x="200" y="160" text-anchor="middle" font-size="13" fill="${c}cc" font-weight="600" font-family="'Segoe UI','Microsoft YaHei',sans-serif">${title}</text>
+    </svg>`;
+  }
+
+  document.getElementById('detIllus').innerHTML = makeSVG(ev.icon, ev.illus, era.color);
+
+  function tryLoadImage(urls, idx){
+    if(!urls || idx >= urls.length) return;
+    const img = new Image();
+    img.className = 'detail-image';
+    img.alt = ev.title;
+    img.style.display = 'none';
+    img.onload = function(){
+      if(img.naturalWidth > 0 && img.naturalHeight > 0){
+        document.getElementById('detIllus').innerHTML = '';
+        document.getElementById('detIllus').appendChild(img);
+        img.style.display = 'block';
+        const label = document.createElement('div');
+        label.style.cssText = 'text-align:center;font-size:13px;color:#999;margin-top:8px;font-weight:500';
+        label.textContent = ev.illus;
+        document.getElementById('detIllus').appendChild(label);
+      } else {
+        tryLoadImage(urls, idx+1);
+      }
+    };
+    img.onerror = function(){ tryLoadImage(urls, idx+1); };
+    setTimeout(function(){ if(!img.complete) tryLoadImage(urls, idx+1); }, 5000);
+    img.src = urls[idx];
+  }
+
+  if(ev.img){
+    const sourceList = [];
+    if(typeof ev.img === 'string'){
+      sourceList.push(ev.img);
+      const m = ev.img.match(/\/thumb\/(.+?)\/(?:\d+px-.+)$/);
+      if(m){
+        const path = m[1];
+        const fn = path.split('/').pop();
+        sourceList.push(`https://upload.wikimedia.org/wikipedia/commons/${path}`);
+        sourceList.push(`https://en.wikipedia.org/w/index.php?title=Special:FilePath/${fn}&width=400`);
+        sourceList.push(`https://commons.wikimedia.org/wiki/Special:FilePath/${fn}?width=400`);
+      }
+    } else if(Array.isArray(ev.img)) sourceList.push(...ev.img);
+    tryLoadImage(sourceList, 0);
+  }
+
+  document.getElementById('history-detail-overlay').classList.add('open');
+  document.getElementById('history-detail').classList.add('open');
+}
+
+function closeHistoryDetail(){
+  document.getElementById('history-detail-overlay').classList.remove('open');
+  document.getElementById('history-detail').classList.remove('open');
+}
+
+// Close on overlay click
+document.getElementById('history-detail-overlay').addEventListener('click', closeHistoryDetail);
+
+// ============================================================
+// KEYBOARD SUPPORT
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape'){
+    closeGeoPanel();
+    closeHistoryDetail();
+  }
+});
+
+// Preload fonts & touch support
+console.log('🌍 Social Study Learning Platform loaded');
+</script>
+</body>
+</html>
