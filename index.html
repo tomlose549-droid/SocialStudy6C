@@ -117,7 +117,7 @@ body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
 .home-footer{position:absolute;bottom:20px;color:rgba(255,255,255,0.6);font-size:13px;letter-spacing:1px}
 
 .language-switch{
-  position:fixed;top:18px;right:24px;z-index:500;
+  position:fixed;top:18px;right:24px;z-index:1300;
   display:flex;flex-direction:column;align-items:center;gap:4px
 }
 .language-switch button{
@@ -131,6 +131,31 @@ body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
   color:var(--dark);font-size:12px;font-weight:600;
   background:rgba(255,255,255,0.76);border-radius:12px;padding:3px 9px;
   box-shadow:0 4px 14px rgba(0,0,0,0.08);white-space:nowrap
+}
+
+.welcome-overlay{
+  position:fixed;inset:0;z-index:1200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.18);
+  backdrop-filter:blur(18px) saturate(1.28);
+  -webkit-backdrop-filter:blur(18px) saturate(1.28);
+  transition:opacity 1.35s ease,visibility 1.35s ease;
+  cursor:pointer
+}
+.welcome-overlay::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.06));
+  pointer-events:none
+}
+.welcome-overlay.fade-out{opacity:0;visibility:hidden;pointer-events:none}
+.welcome-title{
+  position:relative;z-index:1;color:white;font-size:clamp(44px,7vw,92px);
+  font-weight:900;letter-spacing:1px;text-shadow:0 8px 36px rgba(0,0,0,0.2)
+}
+.welcome-author{
+  position:absolute;left:28px;bottom:24px;z-index:1;
+  color:rgba(255,255,255,0.86);font-size:14px;font-weight:600;
+  letter-spacing:1px;text-shadow:0 3px 16px rgba(0,0,0,0.2)
 }
 
 /* ========== HEADER BAR (shared) ========== */
@@ -373,6 +398,11 @@ body{overflow:hidden;height:100vh;background:var(--tiffany-pale)}
 </head>
 <body>
 
+<div id="welcomeOverlay" class="welcome-overlay" onclick="dismissWelcomeOverlay()">
+  <div id="welcomeTitle" class="welcome-title">Welcome Back</div>
+  <div class="welcome-author">作者：胡景恺，李沂蓉</div>
+</div>
+
 <div class="language-switch">
   <button id="langToggle" onclick="toggleLanguage()">English</button>
   <div class="lang-note" id="langNote">点击显示中文</div>
@@ -498,6 +528,8 @@ function toggleLanguage(){
 function applyLanguage(){
   document.documentElement.lang = isChinese() ? 'zh-CN' : 'en';
   document.title = choose('Social Study - Social Studies Learning Platform', '社会学习 - 社会学科学习平台');
+  const welcomeTitle = document.getElementById('welcomeTitle');
+  if(welcomeTitle) welcomeTitle.textContent = choose('Welcome Back', '欢迎回来');
   document.getElementById('langToggle').textContent = choose('English', '中文');
   document.getElementById('langNote').textContent = choose('点击显示中文', 'Press to English');
 
@@ -1746,6 +1778,78 @@ function illusText(ev){
   return choose(ev.illus, historyZh.events[ev.title]?.illus || ev.illus);
 }
 
+let audioCtx = null;
+
+function getAudioCtx(){
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if(!AudioContextClass) return null;
+  if(!audioCtx) audioCtx = new AudioContextClass();
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playKeyboardClick(){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  const now = ctx.currentTime;
+  const gain = ctx.createGain();
+  const osc = ctx.createOscillator();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(185, now);
+  osc.frequency.exponentialRampToValueAtTime(95, now + 0.035);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.12, now + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.06);
+
+  const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.025), ctx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for(let i=0; i<data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  const noise = ctx.createBufferSource();
+  const noiseGain = ctx.createGain();
+  noise.buffer = noiseBuffer;
+  noiseGain.gain.setValueAtTime(0.08, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.026);
+  noise.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noise.start(now);
+}
+
+function playPorcelainTap(){
+  const ctx = getAudioCtx();
+  if(!ctx) return;
+  const now = ctx.currentTime;
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.18, now);
+  master.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+  master.connect(ctx.destination);
+  [1040, 1560, 2320].forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.985, now + 0.55);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.9 / (i + 1), now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55 + i * 0.12);
+    osc.connect(gain);
+    gain.connect(master);
+    osc.start(now);
+    osc.stop(now + 0.9);
+  });
+}
+
+function dismissWelcomeOverlay(){
+  const overlay = document.getElementById('welcomeOverlay');
+  if(!overlay || overlay.classList.contains('fade-out')) return;
+  playPorcelainTap();
+  overlay.classList.add('fade-out');
+  setTimeout(() => overlay.remove(), 1400);
+}
+
 // ============================================================
 // HISTORY RENDER
 // ============================================================
@@ -1893,6 +1997,13 @@ document.addEventListener('keydown', (e) => {
   if(e.key === 'Escape'){
     closeGeoPanel();
     closeHistoryDetail();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if(e.target.closest('#welcomeOverlay')) return;
+  if(e.target.closest('button,.home-card,.history-event,.history-era-header')){
+    playKeyboardClick();
   }
 });
 
